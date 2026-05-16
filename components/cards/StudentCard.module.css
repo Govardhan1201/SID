@@ -1,0 +1,74 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+.body {
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.top { display: flex; gap: var(--space-4); align-items: flex-start; }
+
+.info { display: flex; flex-direction: column; gap: 4px; }
+.name {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-1);
+  transition: color var(--duration) var(--ease);
+}
+.card:hover .name { color: var(--primary-l); }
+
+.sub { font-size: var(--text-xs); color: var(--text-4); }
+.college {
+  font-size: var(--text-xs);
+  color: var(--text-4);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bio {
+  font-size: var(--text-sm);
+  color: var(--text-3);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.domains { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  color: var(--text-4);
+}
+
+.socials {
+  display: flex;
+  gap: var(--space-3);
+}
+.socials span {
+  color: var(--text-4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color var(--duration) var(--ease);
+}
+.socials span:hover { color: var(--text-1); }
