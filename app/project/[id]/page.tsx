@@ -24,8 +24,15 @@ export default function ProjectDetailPage() {
     const p = ProjectStore.getById(id);
     if (!p) { router.replace('/explore'); return; }
     if (p.visibility === 'admin-only' && role === null) { router.replace('/login'); return; }
-    p.views++;
-    ProjectStore.save(p);
+
+    // Deduplicate view count: only increment once per browser session per project
+    const viewKey = `viewed_project_${id}`;
+    if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
+      p.views++;
+      ProjectStore.save(p);
+      sessionStorage.setItem(viewKey, '1');
+    }
+
     setProject(p);
     setAuthor(StudentStore.getById(p.authorId) ?? null);
     setLoading(false);

@@ -78,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result.success && result.userId) {
       setUserId(result.userId);
       setRole(r);
+      loadProfile(result.userId, r);  // ← was missing: load profile immediately after signup
     }
     return { success: result.success, error: result.error, userId: result.userId };
   };

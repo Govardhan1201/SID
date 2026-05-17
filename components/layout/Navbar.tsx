@@ -88,8 +88,8 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Bell */}
-              <Link href={getDashHref()} className={styles.iconBtn} aria-label="Notifications">
+              {/* Bell — links directly to notifications tab */}
+              <Link href="/dashboard?tab=notifications" className={styles.iconBtn} aria-label="Notifications">
                 <Bell size={15} />
                 {unread > 0 && <span className={styles.badge}>{unread > 9 ? '9+' : unread}</span>}
               </Link>

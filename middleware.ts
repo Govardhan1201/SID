@@ -18,7 +18,10 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow public pages
-  if (PUBLIC.includes(pathname)) {
+  if (PUBLIC.includes(pathname)) return NextResponse.next();
+
+  // Allow judge view — password-gated at page level, not session-gated
+  if (pathname.match(/^\/hackathon\/[^/]+\/judge(\/.*)?$/)) {
     return NextResponse.next();
   }
 

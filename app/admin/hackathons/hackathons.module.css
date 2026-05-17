@@ -1,0 +1,50 @@
+.pageHeader {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-4); margin-bottom: var(--space-8); flex-wrap: wrap;
+}
+.breadcrumb { font-size: var(--text-xs); color: var(--text-4); font-family: var(--font-mono); margin-bottom: var(--space-2); }
+.title { font-size: var(--text-3xl); font-weight: 800; color: var(--text-1); letter-spacing: -0.03em; }
+.sub   { font-size: var(--text-sm); color: var(--text-3); margin-top: var(--space-1); }
+
+.statsRow {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4); margin-bottom: var(--space-8);
+}
+
+.list { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.card {
+  position: relative; display: flex;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; text-decoration: none;
+  transition: border-color var(--duration-md) var(--ease), transform var(--duration-md) var(--ease);
+}
+.card:hover { border-color: var(--border-3); transform: translateX(2px); }
+.card:hover .cardAccent { background: var(--primary); }
+
+.cardAccent {
+  width: 3px; flex-shrink: 0;
+  background: var(--border-2);
+  transition: background var(--duration-md) var(--ease);
+}
+
+.cardBody { flex: 1; padding: var(--space-5) var(--space-6); }
+
+.cardTop {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-4); margin-bottom: var(--space-3);
+}
+.cardTitle   { font-size: var(--text-lg); font-weight: 700; color: var(--text-1); margin-top: var(--space-2); letter-spacing: -0.02em; }
+.cardTagline { font-size: var(--text-sm); color: var(--text-3); margin-top: 2px; }
+.cardArrow   { color: var(--text-4); flex-shrink: 0; margin-top: 4px; }
+
+.cardMeta { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; }
+.metaItem {
+  display: flex; align-items: center; gap: 5px;
+  font-size: var(--text-xs); color: var(--text-4); font-family: var(--font-mono);
+}
+.pastTag { color: var(--danger); }
+
+@media (max-width: 768px) {
+  .statsRow { grid-template-columns: repeat(2, 1fr); }
+}

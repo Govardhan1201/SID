@@ -234,3 +234,122 @@ export interface PlatformStats {
   topColleges: { name: string; count: number }[];
   growthData: { month: string; students: number; projects: number }[];
 }
+
+// ── Hackathon System ───────────────────────────────────────────────────────
+
+export type HackathonStatus = 'draft' | 'active' | 'judging' | 'completed';
+export type HackathonProjectStatus = 'draft' | 'submitted' | 'locked';
+export type HackathonParticipantRole = 'leader' | 'member';
+
+export interface HackathonTrack {
+  id: string;
+  name: string;
+  description: string;
+  problemStatement: string;
+  openInnovation: boolean; // true = teams define their own problem
+}
+
+export interface Hackathon {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  banner: string;
+  tracks: HackathonTrack[];
+  deadline: string;         // ISO date-time string, editable
+  status: HackathonStatus;
+  judgeToken: string;       // UUID — used in external judge link
+  judgePasswordHash: string;// hashed judge access password
+  createdBy: string;        // admin userId
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HackathonTeam {
+  id: string;
+  hackathonId: string;
+  name: string;
+  passwordHash: string;     // shared by all team members
+  plainPassword: string;    // stored for credentials sheet (BlueTiger2847)
+  leaderId: string;
+  memberIds: string[];
+  trackId: string | null;   // chosen during project setup
+  projectId: string | null;
+  createdAt: string;
+}
+
+export interface HackathonParticipant {
+  hackathonId: string;
+  userId: string;
+  teamId: string;
+  role: HackathonParticipantRole;
+  joinedAt: string;
+  addedToPortfolio: boolean;
+}
+
+export interface HackathonProject {
+  id: string;
+  hackathonId: string;
+  teamId: string;
+  trackId: string;
+  title: string;
+  tagline: string;
+  description: string;
+  problemSolved: string;
+  techStack: string[];
+  githubLink: string;
+  demoLink: string;
+  videoLink: string;
+  presentationLink: string;
+  screenshots: string[];
+  status: HackathonProjectStatus;
+  submittedAt: string | null;
+  linkedPortfolioProjectId: string | null; // links to regular Project after hackathon
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HackathonRankEntry {
+  rank: number;
+  teamId: string;
+  prize: string;
+  notes: string;
+}
+
+export interface HackathonSpecialAward {
+  award: string;
+  teamId: string;
+}
+
+export interface HackathonTrackResult {
+  trackId: string;
+  rankings: HackathonRankEntry[];
+  specialAwards: HackathonSpecialAward[];
+}
+
+export interface HackathonStandings {
+  hackathonId: string;
+  publishedAt: string;
+  isPublished: boolean;
+  results: HackathonTrackResult[];
+}
+
+export interface HackathonImportLog {
+  id: string;
+  hackathonId: string;
+  importedAt: string;
+  totalRows: number;
+  created: number;
+  skipped: number;
+  errors: string[];
+}
+
+export interface ImportedParticipantRow {
+  name: string;
+  email: string;
+  team_name: string;
+  role: string; // 'leader' | 'member'
+  college?: string;
+  branch?: string;
+  year?: string;
+}
