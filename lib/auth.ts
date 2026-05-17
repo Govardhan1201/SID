@@ -6,8 +6,17 @@ import {
 import type { User, UserRole } from '@/types';
 
 const SESSION_KEY = 'if_session';
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
-// ── Auth helpers ──────────────────────────────────────────────────────────────
+function setSessionCookie(token: string) {
+  if (typeof document === 'undefined') return;
+  document.cookie = `if_session=${token}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Strict`;
+}
+
+function clearSessionCookie() {
+  if (typeof document === 'undefined') return;
+  document.cookie = 'if_session=; path=/; max-age=0; SameSite=Strict';
+}
 
 export interface AuthResult {
   success: boolean;
@@ -36,7 +45,10 @@ export async function signUp(
   UserStore.save(user);
 
   const token = createSessionToken(id);
-  if (typeof window !== 'undefined') sessionStorage.setItem(SESSION_KEY, token);
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem(SESSION_KEY, token);
+    setSessionCookie(token);
+  }
 
   return { success: true, userId: id, role };
 }
@@ -51,9 +63,11 @@ export async function signIn(email: string, password: string): Promise<AuthResul
   if (!valid) return { success: false, error: 'Incorrect password.' };
 
   const token = createSessionToken(user.id);
-  if (typeof window !== 'undefined') sessionStorage.setItem(SESSION_KEY, token);
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem(SESSION_KEY, token);
+    setSessionCookie(token);
+  }
 
-  // update lastLogin
   user.lastLogin = new Date().toISOString();
   user.updatedAt = new Date().toISOString();
   UserStore.save(user);
@@ -62,7 +76,10 @@ export async function signIn(email: string, password: string): Promise<AuthResul
 }
 
 export function signOut(): void {
-  if (typeof window !== 'undefined') sessionStorage.removeItem(SESSION_KEY);
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(SESSION_KEY);
+    clearSessionCookie();
+  }
 }
 
 export function getCurrentSession(): { userId: string; role: UserRole } | null {

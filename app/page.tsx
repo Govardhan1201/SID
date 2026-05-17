@@ -1,279 +1,281 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import ProjectCard from '@/components/cards/ProjectCard';
-import IdeaCard from '@/components/cards/IdeaCard';
-import StudentCard from '@/components/cards/StudentCard';
-import { ProjectStore, IdeaStore, StudentStore, UserStore } from '@/lib/store';
-import { isSeeded } from '@/lib/store';
-import { seedDatabase } from '@/lib/seed';
-import type { Project, Idea, StudentProfile } from '@/types';
-import { ArrowRight, Search, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { StudentStore, ProjectStore, IdeaStore } from '@/lib/store';
+import {
+  Layers, ArrowRight, Terminal, Code2, Users, Zap,
+  GitBranch, Shield, Search, ChevronRight, Star
+} from 'lucide-react';
 import styles from './page.module.css';
 
+const DOMAINS = ['AI/ML','Web Dev','Mobile','DevOps/Cloud','IoT/Hardware','Blockchain/Web3','Healthcare','Fintech','EdTech','SaaS','Cybersecurity','AR/VR','Data Engineering','Social Impact'];
+
+const TERMINAL_LINES = [
+  { delay: 0,    text: '$ ideaforge init --platform student-innovation', type: 'cmd' },
+  { delay: 800,  text: '✓ Connecting to talent discovery network...', type: 'ok' },
+  { delay: 1600, text: '✓ Loading 1,240+ student projects', type: 'ok' },
+  { delay: 2400, text: '✓ Indexing ideas, teams, and profiles', type: 'ok' },
+  { delay: 3200, text: '→ Platform ready. 47 recruiters online.', type: 'info' },
+];
+
+const FEATURES = [
+  {
+    icon: <Code2 size={20} />,
+    title: 'Showcase real projects',
+    desc: 'Not a resume — a live portfolio. Share your GitHub, demo, problem statement, and impact metrics.',
+  },
+  {
+    icon: <Zap size={20} />,
+    title: 'Submit ideas',
+    desc: 'Not built yet? Submit the concept. Get visibility, collaborators, and recruiter interest early.',
+  },
+  {
+    icon: <Users size={20} />,
+    title: 'Form teams',
+    desc: 'Find students with complementary skills. Build together for hackathons, internships, and startups.',
+  },
+  {
+    icon: <Search size={20} />,
+    title: 'Get discovered',
+    desc: 'Recruiters from top companies browse by skill, domain, and college. Your work speaks for itself.',
+  },
+  {
+    icon: <GitBranch size={20} />,
+    title: 'Track versions',
+    desc: 'Every project update is versioned. Show progression from MVP to deployed product.',
+  },
+  {
+    icon: <Shield size={20} />,
+    title: 'Moderated quality',
+    desc: 'Admin review ensures signal over noise. Featured projects get 5× more recruiter eyeballs.',
+  },
+];
+
 export default function LandingPage() {
-  const [projects, setProjects]  = useState<Project[]>([]);
-  const [ideas, setIdeas]        = useState<Idea[]>([]);
-  const [students, setStudents]  = useState<StudentProfile[]>([]);
-  const [query, setQuery]        = useState('');
-  const [ready, setReady]        = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [visibleLines, setVisibleLines] = useState(0);
+  const [stats, setStats] = useState({ students: 0, projects: 0, ideas: 0 });
 
   useEffect(() => {
-    async function load() {
-      if (!isSeeded()) await seedDatabase();
-      setProjects(ProjectStore.getPublic().filter(p => p.isFeatured).slice(0, 3));
-      setIdeas(IdeaStore.getPublic().filter(i => i.isFeatured).slice(0, 3));
-      setStudents(StudentStore.getAll().slice(0, 4));
-      setReady(true);
-    }
-    load();
+    // Animate terminal lines
+    TERMINAL_LINES.forEach((line, i) => {
+      setTimeout(() => setVisibleLines(i + 1), line.delay);
+    });
+    // Load real platform stats
+    setStats({
+      students: StudentStore.getAll().length,
+      projects: ProjectStore.getPublic().length,
+      ideas:    IdeaStore.getPublic().length,
+    });
   }, []);
 
-  // Live platform numbers from seed data
-  const totalStudents  = UserStore.getAll().filter(u => u.role === 'student').length;
-  const totalProjects  = ProjectStore.getAll().filter(p => p.status === 'published').length;
-  const totalIdeas     = IdeaStore.getAll().filter(i => i.status === 'published').length;
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (query.trim()) window.location.href = `/explore?q=${encodeURIComponent(query.trim())}`;
-  }
-
   return (
-    <div className="page">
-      <Navbar />
-
-      <main className="main">
-
-        {/* ── Hero ─────────────────────────────────────────────────────────── */}
-        <section className={styles.hero}>
-          <div className="container container--narrow">
-            <div className={styles.heroLabel}>
-              <span className="badge badge-primary">Now live in beta</span>
-            </div>
-
-            <h1 className={styles.heroTitle}>
-              The place where engineering students<br />show what they actually built.
-            </h1>
-
-            <p className={styles.heroBody}>
-              IdeaForge is a portfolio and talent platform for students who build things.
-              Upload your hackathon project or ideathon idea, keep it organized with a real submission form,
-              and let recruiters or teammates find you based on your actual work — not just your resume.
-            </p>
-
-            <form onSubmit={handleSearch} className={styles.searchForm} role="search">
-              <div className={styles.searchWrap}>
-                <Search size={16} className={styles.searchIcon} />
-                <input
-                  id="hero-search"
-                  type="search"
-                  className={styles.searchInput}
-                  placeholder="Search projects, ideas, students, or tech stack…"
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  aria-label="Search IdeaForge"
-                  maxLength={200}
-                />
-                <button type="submit" className="btn btn-primary btn-sm">Search</button>
-              </div>
-            </form>
-
-            <div className={styles.heroCTAs}>
-              <Link href="/signup" className="btn btn-primary btn-lg">
-                Create your profile <ArrowRight size={16} />
-              </Link>
-              <Link href="/explore" className="btn btn-secondary btn-lg">
-                Browse projects
-              </Link>
-            </div>
+    <div className={styles.page}>
+      {/* ── Navbar ── */}
+      <header className={styles.nav}>
+        <div className={`container ${styles.navInner}`}>
+          <Link href="/" className={styles.logo}>
+            <Layers size={20} strokeWidth={2.5} />
+            <span>IdeaForge</span>
+          </Link>
+          <div className={styles.navLinks}>
+            <span className={styles.navStat}>
+              <span className={styles.dot} />
+              {stats.students} students online
+            </span>
           </div>
-        </section>
-
-        {/* ── Numbers bar ──────────────────────────────────────────────────── */}
-        <section className={styles.numbersBar}>
-          <div className="container">
-            <div className={styles.numbers}>
-              <div className={styles.number}>
-                <span className={styles.numberVal}>{ready ? totalStudents.toLocaleString() : '—'}</span>
-                <span className={styles.numberLabel}>Students on platform</span>
-              </div>
-              <div className={styles.numberDivider} />
-              <div className={styles.number}>
-                <span className={styles.numberVal}>{ready ? totalProjects.toLocaleString() : '—'}</span>
-                <span className={styles.numberLabel}>Projects submitted</span>
-              </div>
-              <div className={styles.numberDivider} />
-              <div className={styles.number}>
-                <span className={styles.numberVal}>{ready ? totalIdeas.toLocaleString() : '—'}</span>
-                <span className={styles.numberLabel}>Ideas posted</span>
-              </div>
-              <div className={styles.numberDivider} />
-              <div className={styles.number}>
-                <span className={styles.numberVal}>4</span>
-                <span className={styles.numberLabel}>Recruiters hiring</span>
-              </div>
-            </div>
+          <div className={styles.navActions}>
+            <Link href="/login"  className="btn btn-ghost btn-sm">Sign in</Link>
+            <Link href="/signup" className="btn btn-primary btn-sm">Get started</Link>
           </div>
-        </section>
+        </div>
+      </header>
 
-        {/* ── How it works ─────────────────────────────────────────────────── */}
-        <section className="section">
-          <div className="container">
-            <div className={styles.sectionHead}>
-              <h2>How it works</h2>
-              <p>
-                Three kinds of people use IdeaForge. Here's what each of them gets.
+      {/* ── Hero ── */}
+      <section className={styles.hero}>
+        <div className={styles.gridBg} aria-hidden />
+        <div className="container">
+          <div className={styles.heroInner}>
+            <div className={styles.heroContent}>
+              <div className={styles.heroBadge}>
+                <Star size={11} />
+                <span>Student Innovation Platform</span>
+              </div>
+              <h1 className={styles.heroTitle}>
+                Where engineering<br />
+                <span className={styles.heroAccent}>students ship</span><br />
+                real products.
+              </h1>
+              <p className={styles.heroSub}>
+                Showcase projects. Submit ideas. Form teams. Get discovered by top recruiters — all in one place.
               </p>
-            </div>
-
-            <div className={styles.howGrid}>
-              {/* Students */}
-              <div className={styles.roleBlock}>
-                <div className={styles.roleTag}>For students</div>
-                <h3>Submit once. Get discovered forever.</h3>
-                <p>
-                  Fill in a structured form for your hackathon project or ideathon idea — problem, solution,
-                  tech stack, team, links, screenshots. It lives on a clean public page with your name on it.
-                  Recruiters search by skill, domain, or college. Your work does the talking.
-                </p>
-                <ul className={styles.checkList}>
-                  <li><CheckCircle size={15} /> Public project + idea pages</li>
-                  <li><CheckCircle size={15} /> Draft, version history, edit anytime</li>
-                  <li><CheckCircle size={15} /> Analytics on who viewed your work</li>
-                  <li><CheckCircle size={15} /> Team creation and collaboration</li>
-                </ul>
-                <Link href="/signup" className="btn btn-primary btn-sm">
-                  Create student profile
-                </Link>
-              </div>
-
-              {/* Recruiters */}
-              <div className={styles.roleBlock}>
-                <div className={styles.roleTag} style={{ color: 'var(--accent)', background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.2)' }}>
-                  For recruiters
-                </div>
-                <h3>Find builders, not just candidates.</h3>
-                <p>
-                  Search students by what they've actually built. Filter by tech stack, domain, college,
-                  or year. Every profile shows real projects with code links and demos.
-                  Shortlist candidates and contact them through the platform messenger.
-                </p>
-                <ul className={styles.checkList}>
-                  <li><CheckCircle size={15} /> Search by skills, tech, domain, college</li>
-                  <li><CheckCircle size={15} /> See both public and unlisted work</li>
-                  <li><CheckCircle size={15} /> Save shortlists and candidate notes</li>
-                  <li><CheckCircle size={15} /> Contact students directly</li>
-                </ul>
-                <Link href="/signup?role=recruiter" className="btn btn-secondary btn-sm">
-                  Join as recruiter
-                </Link>
-              </div>
-
-              {/* Admin */}
-              <div className={styles.roleBlock}>
-                <div className={styles.roleTag} style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  For admins
-                </div>
-                <h3>Keep the platform worth using.</h3>
-                <p>
-                  Full content moderation queue, user management, featured content controls,
-                  category and tag management, analytics dashboards, and audit logs.
-                  Everything needed to run a healthy platform without constant fire-fighting.
-                </p>
-                <ul className={styles.checkList}>
-                  <li><CheckCircle size={15} /> Moderation queue with approve/reject</li>
-                  <li><CheckCircle size={15} /> Feature content on homepage</li>
-                  <li><CheckCircle size={15} /> Platform-wide analytics</li>
-                  <li><CheckCircle size={15} /> User management + audit log</li>
-                </ul>
-                <Link href="/login" className="btn btn-secondary btn-sm">
-                  Admin login
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Featured projects ─────────────────────────────────────────────── */}
-        {ready && projects.length > 0 && (
-          <section className={`section ${styles.darkSection}`}>
-            <div className="container">
-              <div className={styles.sectionHead}>
-                <h2>Featured projects this week</h2>
-                <Link href="/explore" className={styles.viewAll}>
-                  View all <ArrowRight size={14} />
-                </Link>
-              </div>
-              <div className="grid-3">
-                {projects.map(p => <ProjectCard key={p.id} project={p} />)}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── Top ideas ─────────────────────────────────────────────────────── */}
-        {ready && ideas.length > 0 && (
-          <section className="section">
-            <div className="container">
-              <div className={styles.sectionHead}>
-                <h2>Ideas looking for collaborators</h2>
-                <Link href="/explore?tab=ideas" className={styles.viewAll}>
-                  View all <ArrowRight size={14} />
-                </Link>
-              </div>
-              <div className="grid-3">
-                {ideas.map(i => <IdeaCard key={i.id} idea={i} />)}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── Student profiles ──────────────────────────────────────────────── */}
-        {ready && students.length > 0 && (
-          <section className={`section ${styles.darkSection}`}>
-            <div className="container">
-              <div className={styles.sectionHead}>
-                <h2>Builders on the platform</h2>
-                <Link href="/explore?tab=students" className={styles.viewAll}>
-                  Browse all <ArrowRight size={14} />
-                </Link>
-              </div>
-              <div className="grid-4">
-                {students.map(s => <StudentCard key={s.userId} profile={s} />)}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── CTA ──────────────────────────────────────────────────────────── */}
-        <section className="section">
-          <div className="container container--narrow">
-            <div className={styles.cta}>
-              <h2>Your project deserves a proper home.</h2>
-              <p>
-                That hackathon repo sitting on GitHub with no README, no demo, and no one looking at it —
-                give it a page that actually explains what you built and why it matters.
-                Takes about 15 minutes to submit.
-              </p>
-              <div className={styles.ctaActions}>
+              <div className={styles.heroCta}>
                 <Link href="/signup" className="btn btn-primary btn-lg">
-                  Get started — it's free
+                  Start building your profile <ArrowRight size={16} />
                 </Link>
-                <Link href="/explore" className="btn btn-ghost btn-lg">
-                  See what others built
+                <Link href="/login" className="btn btn-outline btn-lg">
+                  Sign in to explore
                 </Link>
+              </div>
+              <p className={styles.heroNote}>
+                Free for students. No credit card required.
+              </p>
+            </div>
+
+            {/* Terminal window */}
+            <div className={styles.terminal}>
+              <div className={styles.terminalBar}>
+                <span className={styles.dot1} />
+                <span className={styles.dot2} />
+                <span className={styles.dot3} />
+                <span className={styles.terminalTitle}>ideaforge — zsh</span>
+              </div>
+              <div className={styles.terminalBody}>
+                {TERMINAL_LINES.slice(0, visibleLines).map((line, i) => (
+                  <div key={i} className={`${styles.termLine} ${styles[line.type]}`}>
+                    {line.text}
+                  </div>
+                ))}
+                {visibleLines < TERMINAL_LINES.length && (
+                  <div className={styles.cursor} />
+                )}
+                {visibleLines >= TERMINAL_LINES.length && (
+                  <div className={styles.termLine} style={{ marginTop: '12px' }}>
+                    <span className={styles.termPrompt}>$</span>
+                    <span className={styles.termBlinkCursor}>▋</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-      </main>
+      {/* ── Stats bar ── */}
+      <div className={styles.statsBar}>
+        <div className="container">
+          <div className={styles.statsInner}>
+            {[
+              { value: stats.students || '12', label: 'Students', suffix: '+' },
+              { value: stats.projects || '8',  label: 'Projects', suffix: '+' },
+              { value: stats.ideas    || '5',  label: 'Ideas',    suffix: '+' },
+              { value: '4',  label: 'Recruiters', suffix: '+' },
+            ].map(s => (
+              <div key={s.label} className={styles.stat}>
+                <span className={styles.statValue}>{s.value}{s.suffix}</span>
+                <span className={styles.statLabel}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <Footer />
+      {/* ── Features ── */}
+      <section className={styles.features}>
+        <div className="container">
+          <div className={styles.sectionHead}>
+            <p className={styles.sectionLabel}>// platform.features</p>
+            <h2 className={styles.sectionTitle}>Everything you need to get noticed</h2>
+            <p className={styles.sectionSub}>Built for students who build. Not for students who just list courses on a resume.</p>
+          </div>
+          <div className={styles.featureGrid}>
+            {FEATURES.map((f) => (
+              <div key={f.title} className={styles.featureCard}>
+                <div className={styles.featureIcon}>{f.icon}</div>
+                <h3 className={styles.featureTitle}>{f.title}</h3>
+                <p className={styles.featureDesc}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Domain cloud ── */}
+      <section className={styles.domains}>
+        <div className="container">
+          <p className={styles.sectionLabel}>// domains.available</p>
+          <h2 className={styles.sectionTitle}>All verticals. One platform.</h2>
+          <div className={styles.domainGrid}>
+            {DOMAINS.map(d => (
+              <div key={d} className={styles.domainTag}>
+                <ChevronRight size={11} />
+                {d}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── For who ── */}
+      <section className={styles.forWho}>
+        <div className="container">
+          <div className={styles.forWhoGrid}>
+            <div className={styles.forWhoCard}>
+              <div className={styles.forWhoLabel}>for students</div>
+              <h3 className={styles.forWhoTitle}>Your work deserves a real showcase.</h3>
+              <ul className={styles.forWhoList}>
+                {['Submit projects with problem, solution, and impact','Share your idea even before you build it','Form a team and ship together','Get pinged by recruiters who actually care about what you built'].map(t => (
+                  <li key={t}><ChevronRight size={13} className={styles.listIcon} />{t}</li>
+                ))}
+              </ul>
+              <Link href="/signup?role=student" className="btn btn-primary">
+                Join as a student <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className={styles.forWhoCard}>
+              <div className={`${styles.forWhoLabel} ${styles.forWhoLabelAlt}`}>for recruiters</div>
+              <h3 className={styles.forWhoTitle}>Stop filtering resumes. Start reading code.</h3>
+              <ul className={styles.forWhoList}>
+                {['Browse real projects by domain, skill, or college','See GitHub, demo links, and actual impact metrics','Shortlist candidates and reach out directly','Discover students before they start applying anywhere'].map(t => (
+                  <li key={t}><ChevronRight size={13} className={styles.listIcon} />{t}</li>
+                ))}
+              </ul>
+              <Link href="/signup?role=recruiter" className="btn btn-accent">
+                Join as a recruiter <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className={styles.cta}>
+        <div className="container">
+          <div className={styles.ctaBox}>
+            <div className={styles.ctaGlow} aria-hidden />
+            <p className={styles.ctaLabel}>// get.started</p>
+            <h2 className={styles.ctaTitle}>Start building your public presence today.</h2>
+            <p className={styles.ctaSub}>Join hundreds of students already on the platform. Free forever.</p>
+            <div className={styles.ctaActions}>
+              <Link href="/signup" className="btn btn-primary btn-lg">
+                Create your account <ArrowRight size={16} />
+              </Link>
+              <Link href="/login" className="btn btn-ghost btn-lg">
+                Already have an account? Sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className={styles.footer}>
+        <div className="container">
+          <div className={styles.footerInner}>
+            <div className={styles.footerLogo}>
+              <Layers size={16} strokeWidth={2.5} />
+              <span>IdeaForge</span>
+            </div>
+            <p className={styles.footerNote}>Built for students who build.</p>
+            <div className={styles.footerLinks}>
+              <Link href="/login">Sign in</Link>
+              <Link href="/signup">Get started</Link>
+            </div>
+          </div>
+          <p className={styles.footerCopy}>© {new Date().getFullYear()} IdeaForge. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }
