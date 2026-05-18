@@ -99,13 +99,13 @@ export default function TeamPage() {
                 </span>
               </div>
 
-              {team.lookingFor.length > 0 && (
+              {(team.rolesNeeded?.length || 0) > 0 && (
                 <div style={{ marginBottom: 'var(--space-4)' }}>
                   <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-2)' }}>
                     Looking for
                   </p>
                   <div className="chip-list">
-                    {team.lookingFor.map(r => <span key={r} className="chip">{r}</span>)}
+                    {team.rolesNeeded.map(r => <span key={r} className="chip">{r}</span>)}
                   </div>
                 </div>
               )}

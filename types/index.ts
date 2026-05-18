@@ -139,17 +139,19 @@ export interface Idea {
 export interface Team {
   id: string;
   name: string;
-  description: string;
   avatar: string;
+  description: string;
   leaderId: string;
-  members: { userId: string; role: TeamRole; joinedAt: string }[];
+  memberIds: string[];
+  skills: string[];
+  isOpen: boolean;
+  rolesNeeded: string[];
+  projectId: string | null;
   projectIds: string[];
   ideaIds: string[];
-  skills: string[];
-  lookingFor: string[];
-  isOpen: boolean;
   activity: ActivityItem[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface TeamMember {
