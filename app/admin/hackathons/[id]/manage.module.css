@@ -1,0 +1,65 @@
+.backLink {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--text-sm); color: var(--text-4);
+  margin-bottom: var(--space-6); text-decoration: none;
+}
+.backLink:hover { color: var(--text-1); }
+
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-4); margin-bottom: var(--space-8); flex-wrap: wrap;
+}
+.titleRow { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+.title { font-size: var(--text-3xl); font-weight: 800; color: var(--text-1); letter-spacing: -0.03em; }
+.metaRow {
+  display: flex; align-items: center; gap: var(--space-5);
+  font-size: var(--text-sm); color: var(--text-3);
+}
+.metaRow span { display: flex; align-items: center; gap: var(--space-2); }
+.headerActions { display: flex; gap: var(--space-3); }
+
+.layout {
+  display: flex; gap: var(--space-8);
+  align-items: flex-start;
+}
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+}
+
+.sidebar {
+  width: 240px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: var(--space-2);
+  position: sticky; top: 100px;
+}
+@media (max-width: 768px) {
+  .sidebar { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; }
+}
+
+.content {
+  flex: 1;
+  min-width: 0; /* prevent overflow */
+}
+
+.section { margin-bottom: var(--space-10); }
+.sectionHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.sectionTitle { font-size: var(--text-xl); font-weight: 700; color: var(--text-1); margin-bottom: var(--space-2); }
+.sectionDesc { font-size: var(--text-sm); color: var(--text-3); margin-bottom: var(--space-4); }
+
+.judgeCard {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-6);
+}
+.copyRow { display: flex; gap: var(--space-2); }
+.copyRow input { flex: 1; font-family: var(--font-mono); font-size: var(--text-sm); background: var(--bg-1); }
+
+.trackList {
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.trackItem {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-4); background: var(--bg-2);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}

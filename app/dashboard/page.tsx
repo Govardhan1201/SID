@@ -38,6 +38,7 @@ function DashboardContent() {
   const [projects,      setProjects]     = useState<Project[]>([]);
   const [ideas,         setIdeas]        = useState<Idea[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [myHackathons,  setMyHackathons]  = useState<Array<{ id: string; name: string; status: string }>>([]);
 
   useEffect(() => {
     if (!isLoading && (!userId || role !== 'student')) router.replace('/login');
@@ -48,6 +49,14 @@ function DashboardContent() {
     setProjects(ProjectStore.getByAuthor(userId));
     setIdeas(IdeaStore.getByAuthor(userId));
     setNotifications(NotificationStore.getForUser(userId));
+    
+    // Find active hackathons the user is part of
+    const { HackathonStore, HackathonParticipantStore } = require('@/lib/hackathon-store');
+    const myParticipations = HackathonParticipantStore.getAll().filter((p: any) => p.userId === userId);
+    const activeHackathons = myParticipations
+      .map((p: any) => HackathonStore.getById(p.hackathonId))
+      .filter((h: any) => h && h.status !== 'draft');
+    setMyHackathons(activeHackathons);
   }, [userId]);
 
   // Sync tab from URL when it changes
@@ -134,6 +143,21 @@ function DashboardContent() {
                       <Link href="/dashboard/ideas/new"    className="btn btn-secondary btn-sm"><Plus size={14} /> New idea</Link>
                     </div>
                   </div>
+
+                  {/* Active Hackathon Alert */}
+                  {myHackathons.map(h => (
+                    <div key={h.id} className={styles.completeCard} style={{ background: 'var(--primary-dim)', borderColor: 'rgba(56, 189, 248, 0.2)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-5)' }}>
+                      <div>
+                        <p className={styles.completeTitle} style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                          <Award size={16} /> {h.name} is {h.status}!
+                        </p>
+                        <p className={styles.completeSub} style={{ color: 'var(--text-2)' }}>You are registered for this hackathon.</p>
+                      </div>
+                      <Link href={`/hackathon/${h.id}`} className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>
+                        Go to Hackathon <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  ))}
 
                   {/* Profile completeness */}
                   {completePct < 100 && (

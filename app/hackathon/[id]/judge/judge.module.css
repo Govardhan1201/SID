@@ -1,0 +1,93 @@
+.authWrapper {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-1); padding: var(--space-6);
+  background-image: radial-gradient(circle at top center, var(--primary-dim) 0%, transparent 60%);
+}
+.authCard {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: var(--space-8);
+  width: 100%; max-width: 400px; text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+.authIcon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--primary-dim); color: var(--primary);
+  margin-bottom: var(--space-6);
+}
+.authTitle { font-size: var(--text-2xl); font-weight: 800; color: var(--text-1); margin-bottom: var(--space-2); }
+.authSub { font-size: var(--text-base); color: var(--text-3); margin-bottom: var(--space-8); }
+.authForm { display: flex; flex-direction: column; gap: var(--space-6); text-align: left; }
+.errorText { color: var(--danger); font-size: var(--text-sm); margin-top: var(--space-2); }
+
+/* Portal */
+.portal { min-height: 100vh; background: var(--bg-1); }
+
+.header {
+  background: var(--bg-2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.headerInner {
+  max-width: 1200px; margin: 0 auto; padding: var(--space-4) var(--space-6);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.headerBadge {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-xs); font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--warning);
+  background: var(--warning-dim); padding: 4px 10px; border-radius: var(--radius-full);
+}
+.headerTitle { font-size: var(--text-xl); font-weight: 700; color: var(--text-1); }
+
+.main {
+  max-width: 1200px; margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-16);
+}
+
+.controls {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-6);
+  margin-bottom: var(--space-6); flex-wrap: wrap;
+}
+.searchWrap { position: relative; flex: 1; min-width: 250px; max-width: 400px; }
+.searchIcon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-4); }
+.searchInput {
+  width: 100%; background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--text-1); padding: 10px 12px 10px 36px;
+  border-radius: var(--radius); font-size: var(--text-sm);
+  transition: border-color var(--duration) var(--ease);
+}
+.searchInput:focus { outline: none; border-color: var(--primary); }
+
+.filters { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.statsBar {
+  font-size: var(--text-sm); color: var(--text-3); font-family: var(--font-mono);
+  margin-bottom: var(--space-6); padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-5);
+}
+.card {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); display: flex; flex-direction: column;
+}
+.cardHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border-2);
+}
+.teamName { font-size: var(--text-sm); color: var(--text-3); font-weight: 600; }
+.projTitle { padding: var(--space-5); font-size: var(--text-lg); font-weight: 700; color: var(--text-1); flex: 1; }
+.links { padding: 0 var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+
+.cardFooter {
+  background: var(--bg-3); padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border-2); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);
+}
+.footerLink {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-xs); color: var(--text-4); text-decoration: none;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.footerLink:hover { color: var(--primary); }
