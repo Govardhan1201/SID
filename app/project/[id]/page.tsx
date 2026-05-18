@@ -127,7 +127,7 @@ export default function ProjectDetailPage() {
                 <div className={styles.stats}>
                   <span><Eye size={14} /> {project.views.toLocaleString()} views</span>
                   <button className={`${styles.statBtn} ${liked ? styles.liked : ''}`} onClick={toggleLike}>
-                    <Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {project.likes.length}
+                    <Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {project.likes?.length || 0}
                   </button>
                   <button className={`${styles.statBtn} ${bookmarked ? styles.bookmarked : ''}`} onClick={toggleBookmark}>
                     <Bookmark size={14} fill={bookmarked ? 'currentColor' : 'none'} /> Save
@@ -178,7 +178,7 @@ export default function ProjectDetailPage() {
 
               {/* Comments */}
               <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Discussion ({project.comments.length})</h2>
+                <h2 className={styles.sectionTitle}>Discussion ({project.comments?.length || 0})</h2>
                 {userId ? (
                   <div className={styles.commentForm}>
                     <img src={studentProfile?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=U`} alt="You" className="avatar avatar-sm" />
@@ -234,7 +234,7 @@ export default function ProjectDetailPage() {
               </div>
 
               {/* Team */}
-              {project.teamMembers.length > 0 && (
+              {project.teamMembers?.length > 0 && (
                 <div className="card" style={{ padding: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
                   <p className={styles.sideLabel}><Users size={13} /> Team</p>
                   <div className={styles.teamList}>

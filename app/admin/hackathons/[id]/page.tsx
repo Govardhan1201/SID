@@ -162,7 +162,7 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
               </div>
               <div className={styles.metaRow}>
                 <span><Calendar size={13} /> {new Date(hackathon.createdAt).toLocaleDateString()}</span>
-                <span><Layers size={13} /> {hackathon.tracks.length} tracks</span>
+                <span><Layers size={13} /> {hackathon.tracks?.length || 0} tracks</span>
                 <DeadlineCountdown deadline={hackathon.deadline} />
               </div>
             </div>

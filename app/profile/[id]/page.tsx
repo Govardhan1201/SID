@@ -163,7 +163,7 @@ export default function ProfilePage() {
                   ? <div className="grid-2">{teams.map(t => (
                     <Link key={t.id} href={`/team/${t.id}`} className="card card-hover" style={{ padding: 'var(--space-5)', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
                       <img src={t.avatar} alt={t.name} className="avatar avatar-md" />
-                      <div><div style={{ fontWeight: 700, color: 'var(--text-1)' }}>{t.name}</div><div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)' }}>{t.members.length} members</div></div>
+                      <div><div style={{ fontWeight: 700, color: 'var(--text-1)' }}>{t.name}</div><div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)' }}>{t.memberIds?.length || 0} members</div></div>
                     </Link>
                   ))}</div>
                   : <div className="empty-state"><Users size={36} /><p className="empty-state__title">Not in any teams yet</p></div>

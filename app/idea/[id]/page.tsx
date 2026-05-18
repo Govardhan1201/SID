@@ -110,7 +110,7 @@ export default function IdeaDetailPage() {
                 <div className={styles.stats}>
                   <span><Eye size={14} /> {idea.views.toLocaleString()}</span>
                   <button className={`${styles.statBtn} ${liked ? styles.liked : ''}`} onClick={toggleLike}>
-                    <Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {idea.likes.length}
+                    <Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {idea.likes?.length || 0}
                   </button>
                   <button className={`${styles.statBtn} ${bookmarked ? styles.bookmarked : ''}`} onClick={toggleBookmark}>
                     <Bookmark size={14} fill={bookmarked ? 'currentColor' : 'none'} /> Save
@@ -166,7 +166,7 @@ export default function IdeaDetailPage() {
 
               {/* Comments */}
               <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Discussion ({idea.comments.length})</h2>
+                <h2 className={styles.sectionTitle}>Discussion ({idea.comments?.length || 0})</h2>
                 {userId ? (
                   <div className={styles.commentForm}>
                     <img src={studentProfile?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=U`} alt="" className="avatar avatar-sm" />
