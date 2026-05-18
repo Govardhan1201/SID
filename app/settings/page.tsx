@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { StudentStore, RecruiterStore } from '@/lib/store';
+import { updateStudentProfile, updateRecruiterProfile } from '@/app/actions/users';
 import { sanitizeString, isValidUrl } from '@/lib/security';
 import type { StudentProfile, RecruiterProfile } from '@/types';
 import { User, Building, GitFork, Link2, Globe, Save } from 'lucide-react';
@@ -61,10 +61,10 @@ export default function SettingsPage() {
     else setList([...list, item]);
   }
 
-  function saveProfile() {
+  async function saveProfile() {
     if (!userId) return;
     if (role === 'student' && studentProfile) {
-      const p: StudentProfile = {
+      const p = {
         ...studentProfile,
         name: sanitizeString(name), bio: sanitizeString(bio),
         college: sanitizeString(college), branch: sanitizeString(branch),
@@ -72,16 +72,16 @@ export default function SettingsPage() {
         github: sanitizeString(github), linkedin: sanitizeString(linkedin),
         portfolio: sanitizeString(portfolio), skills, domains,
       };
-      StudentStore.save(p);
+      await updateStudentProfile(userId, p);
     }
     if (role === 'recruiter' && recruiterProfile) {
-      const p: RecruiterProfile = {
+      const p = {
         ...recruiterProfile,
         name: sanitizeString(recName), company: sanitizeString(company),
         role: sanitizeString(recRole), website: sanitizeString(website),
         description: sanitizeString(description), hiringInterests,
       };
-      RecruiterStore.save(p);
+      await updateRecruiterProfile(userId, p);
     }
     refreshProfile();
     setSaved(true);

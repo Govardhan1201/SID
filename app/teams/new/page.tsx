@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { TeamStore, StudentStore } from '@/lib/store';
+import { createTeam } from '@/app/actions/teams';
 import { useAuth } from '@/context/AuthContext';
 import { generateId } from '@/lib/security';
 import type { Team } from '@/types';
@@ -29,20 +29,19 @@ export default function NewTeamPage() {
   async function create() {
     if (!userId || !name) return;
     setSaving(true);
-    const profile = StudentStore.getById(userId);
-    const team: Team = {
-      id: generateId(), name: name.trim(), description: description.trim(),
+    const teamData = {
+      name: name.trim(), description: description.trim(),
       avatar: `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=6366f1&textColor=ffffff`,
       leaderId: userId,
-      members: [{ userId, role: 'leader', joinedAt: new Date().toISOString() }],
+      memberIds: [userId],
       projectIds: [], ideaIds: [],
       skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-      lookingFor: lookingFor.split(',').map(s => s.trim()).filter(Boolean),
-      isOpen, activity: [], createdAt: new Date().toISOString(),
+      rolesNeeded: lookingFor.split(',').map(s => s.trim()).filter(Boolean),
+      isOpen, activity: [],
     };
-    TeamStore.save(team);
+    const newTeam = await createTeam(teamData);
     setSaving(false);
-    router.push(`/team/${team.id}`);
+    router.push(`/team/${newTeam.id}`);
   }
 
   if (isLoading) return null;

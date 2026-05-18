@@ -1,13 +1,20 @@
 import Link from 'next/link';
 import { GitFork, Link2, Layers, GraduationCap, Code2 } from 'lucide-react';
-import type { StudentProfile } from '@/types';
-import { ProjectStore } from '@/lib/store';
+import { useState, useEffect } from 'react';
+import type { StudentProfile, Project } from '@/types';
+import { getProjectsByUserId } from '@/app/actions/projects';
 import styles from './StudentCard.module.css';
 
 interface Props { profile: StudentProfile; }
 
 export default function StudentCard({ profile }: Props) {
-  const projects = ProjectStore.getByAuthor(profile.userId).filter(p => p.status === 'published');
+  const [projects, setProjects] = useState<Project[]>([]);
+  
+  useEffect(() => {
+    getProjectsByUserId(profile.userId).then(p => {
+      setProjects((p as unknown as Project[]).filter(x => x.status === 'published'));
+    });
+  }, [profile.userId]);
 
   return (
     <Link href={`/profile/${profile.userId}`} className={styles.card}>

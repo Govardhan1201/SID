@@ -5,13 +5,8 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  HackathonStore, 
-  HackathonTeamStore, 
-  HackathonParticipantStore, 
-  HackathonProjectStore,
-  HackathonStandingsStore
-} from '@/lib/hackathon-store';
+import { getHackathonById, getTeamsByHackathon, getProjectsByHackathon, getParticipantsByHackathon } from '@/app/actions/hackathon';
+import { HackathonStandingsStore } from '@/lib/hackathon-store';
 import type { 
   Hackathon, 
   HackathonTeam, 
@@ -37,30 +32,36 @@ export default function HackathonPublicPage({ params }: { params: Promise<{ id: 
   const [allTeams, setAllTeams] = useState<HackathonTeam[]>([]);
 
   useEffect(() => {
-    const h = HackathonStore.getById(id);
-    if (!h) { router.replace('/explore'); return; }
-    setHackathon(h);
+    async function loadData() {
+      const h = await getHackathonById(id);
+      if (!h) { router.replace('/explore'); return; }
+      setHackathon(h as unknown as Hackathon);
 
-    const projs = HackathonProjectStore.getByHackathon(id);
-    setAllProjects(projs);
-    setAllTeams(HackathonTeamStore.getByHackathon(id));
+      const projs = await getProjectsByHackathon(id);
+      setAllProjects(projs as unknown as HackathonProject[]);
+      
+      const teams = await getTeamsByHackathon(id);
+      setAllTeams(teams as unknown as HackathonTeam[]);
 
-    if (h.status === 'completed' || h.status === 'judging') {
-      const st = HackathonStandingsStore.getByHackathon(id);
-      if (st?.isPublished) setStandings(st);
-    }
+      if (h.status === 'completed' || h.status === 'judging') {
+        const st = HackathonStandingsStore.getByHackathon(id);
+        if (st?.isPublished) setStandings(st);
+      }
 
-    if (userId) {
-      const participant = HackathonParticipantStore.getByHackathon(id).find(p => p.userId === userId);
-      if (participant) {
-        const team = HackathonTeamStore.getById(participant.teamId);
-        if (team) {
-          setMyTeam(team);
-          const proj = HackathonProjectStore.getByTeam(team.id);
-          if (proj) setMyProject(proj);
+      if (userId) {
+        const participants = await getParticipantsByHackathon(id);
+        const participant = participants.find(p => p.userId === userId);
+        if (participant) {
+          const team = teams.find(t => t.id === participant.teamId);
+          if (team) {
+            setMyTeam(team as unknown as HackathonTeam);
+            const proj = projs.find(p => p.teamId === team.id);
+            if (proj) setMyProject(proj as unknown as HackathonProject);
+          }
         }
       }
     }
+    loadData();
   }, [id, userId, router]);
 
   if (isLoading || !hackathon) return null;

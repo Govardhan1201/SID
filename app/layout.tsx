@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { NotificationProvider } from '@/context/NotificationContext';
 import CookieConsent from '@/components/layout/CookieConsent';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -34,8 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={inter.className}>
         <AuthProvider>
-          {children}
-          <CookieConsent />
+          <NotificationProvider>
+            {children}
+            <CookieConsent />
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { NotificationStore } from '@/lib/store';
+import { useNotifications } from '@/context/NotificationContext';
 import {
   Layers, Search, Bell, ChevronDown, LogOut,
   User, LayoutDashboard, Settings, Menu, X, Plus, Terminal
@@ -12,21 +12,16 @@ import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const { isAuthenticated, role, userId, studentProfile, recruiterProfile, logout } = useAuth();
+  const { unreadCount: unread } = useNotifications();
   const pathname = usePathname();
   const router   = useRouter();
   const [menuOpen,    setMenuOpen]    = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [unread,      setUnread]      = useState(0);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const displayName = studentProfile?.name ?? recruiterProfile?.name ?? 'Account';
   const avatarSrc   = studentProfile?.avatar ?? recruiterProfile?.logo ?? '';
   const firstName   = displayName.split(' ')[0];
-
-  useEffect(() => {
-    if (!userId) { setUnread(0); return; }
-    setUnread(NotificationStore.getForUser(userId).filter(n => !n.isRead).length);
-  }, [userId, pathname]);
 
   useEffect(() => {
     const h = (e: MouseEvent) => {

@@ -161,6 +161,146 @@ model HackathonProject {
   updatedAt                DateTime  @updatedAt
 }
 
-// Additional models (Projects, Ideas, Comments, etc.) can be added here
-// as the migration progresses. For this hackathon-focused release, 
-// we ensure the core users and hackathon tables are created.
+// ── Global Models ─────────────────────────────────────────────────────────────
+
+model Project {
+  id               String   @id @default(uuid())
+  title            String
+  tagline          String   @default("")
+  summary          String   @default("")
+  description      String   @default("")
+  problemStatement String   @default("")
+  solution         String   @default("")
+  impact           String   @default("")
+  domain           String
+  techStack        String[]
+  tags             String[]
+  category         String   @default("Portfolio Project")
+  sdgMapping       String[]
+  githubLink       String   @default("")
+  liveDemo         String   @default("")
+  demoVideo        String   @default("")
+  pptLink          String   @default("")
+  screenshots      String[]
+  attachments      String[]
+  authorId         String
+  visibility       String   @default("public")
+  status           String   @default("published")
+  moderationStatus String   @default("approved")
+  isFeatured       Boolean  @default(false)
+  buildStatus      String   @default("completed")
+  likes            String[]
+  bookmarks        String[]
+  views            Int      @default(0)
+  version          Int      @default(1)
+  teamId           String?
+  teamMembers      Json     @default("[]")
+  challengesFaced  String   @default("")
+  learnings        String   @default("")
+  futureScope      String   @default("")
+  comments         Json     @default("[]")
+  versionHistory   Json     @default("[]")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Idea {
+  id               String   @id @default(uuid())
+  title            String
+  description      String
+  problem          String   @default("")
+  solution         String   @default("")
+  domain           String
+  tags             String[]
+  sdgMapping       String[]
+  targetAudience   String   @default("")
+  estimatedEffort  String   @default("")
+  authorId         String
+  status           String   @default("open")
+  seekingTeam      Boolean  @default(false)
+  rolesNeeded      String[]
+  likes            String[]
+  bookmarks        String[]
+  views            Int      @default(0)
+  convertedToProjectId String?
+  comments         Json     @default("[]")
+  version          Int      @default(1)
+  versionHistory   Json     @default("[]")
+  summary          String   @default("")
+  impact           String   @default("")
+  feasibility      String   @default("")
+  novelty          String   @default("")
+  category         String   @default("")
+  neededResources  String[]
+  stage            String   @default("raw")
+  risks            String   @default("")
+  roadmap          String   @default("")
+  visibility       String   @default("public")
+  moderationStatus String   @default("pending")
+  isFeatured       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  avatar      String   @default("")
+  description String   @default("")
+  leaderId    String
+  memberIds   String[]
+  skills      String[]
+  isOpen      Boolean  @default(true)
+  rolesNeeded String[]
+  projectId   String?
+  projectIds  String[]
+  ideaIds     String[]
+  activity    Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  senderId  String
+  receiverId String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id           String   @id @default(uuid())
+  reporterId   String
+  reportedId   String
+  targetType   String   // "user" | "project" | "idea"
+  targetId     String
+  reason       String
+  description  String
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  resolvedAt   DateTime?
+  resolution   String?
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  details    String
+  timestamp  DateTime @default(now())
+}
+

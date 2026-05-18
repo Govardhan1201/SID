@@ -1,5 +1,4 @@
 import type { Hackathon, HackathonTeam, HackathonParticipant } from '@/types';
-import { StudentStore } from './store';
 
 interface CredentialRow {
   teamName: string;
@@ -12,16 +11,16 @@ function buildRows(
   hackathon: Hackathon,
   teams: HackathonTeam[],
   participants: HackathonParticipant[],
+  userEmails: Map<string, string>,
 ): CredentialRow[] {
   return teams.map(team => {
     const track = hackathon.tracks.find(t => t.id === team.trackId);
     const members = team.memberIds.map(uid => {
-      const profile = StudentStore.getById(uid);
-      const user = StudentStore.getById(uid);
       const part = participants.find(p => p.userId === uid && p.hackathonId === hackathon.id);
+      const email = userEmails.get(uid) ?? '';
       return {
-        name:  profile?.name ?? uid,
-        email: user?.name ?? '',   // email not stored on profile — look up via userId
+        name:  email.split('@')[0] || uid,
+        email: email,
         role:  part?.role === 'leader' ? 'Leader' : 'Member',
       };
     });
@@ -61,13 +60,11 @@ export function exportCredentialsCSV(
 
   for (const [trackName, trackTeams] of byTrack.entries()) {
     for (const team of trackTeams) {
-      const isFirst = true;
       let firstMember = true;
       for (const uid of team.memberIds) {
-        const profile = StudentStore.getById(uid);
         const part = participants.find(p => p.userId === uid);
-        const name  = profile?.name ?? uid;
         const email = userEmails.get(uid) ?? '';
+        const name  = email.split('@')[0] || uid;
         const role  = part?.role === 'leader' ? 'Leader' : 'Member';
         if (firstMember) {
           lines.push(`"${trackName}","${team.name}","${team.plainPassword}","${loginUrl}","${name}","${email}","${role}"`);

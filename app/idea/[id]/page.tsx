@@ -4,7 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { IdeaStore, StudentStore, ProjectStore } from '@/lib/store';
+import { getIdeaById, updateIdea } from '@/app/actions/ideas';
+import { getStudentProfileById } from '@/app/actions/users';
 import { useAuth } from '@/context/AuthContext';
 import { generateId } from '@/lib/security';
 import type { Idea, Comment } from '@/types';
@@ -18,40 +19,75 @@ export default function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { role, userId, studentProfile } = useAuth();
-  const [idea, setIdea] = useState<Idea | null>(null);
+  const [idea, setIdea] = useState<any>(null);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [author, setAuthor] = useState<any>(null);
+  const [commentAuthors, setCommentAuthors] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const i = IdeaStore.getById(id);
-    if (!i) { router.replace('/explore?tab=ideas'); return; }
-    if (i.visibility === 'admin-only' && !role) { router.replace('/login'); return; }
-    i.views++; IdeaStore.save(i);
-    setIdea(i); setLoading(false);
+    async function load() {
+      const i = await getIdeaById(id);
+      if (!i) { router.replace('/explore?tab=ideas'); return; }
+      if (i.visibility === 'admin-only' && !role) { router.replace('/login'); return; }
+      
+      const views = (i.views || 0) + 1;
+      await updateIdea(id, { views });
+      i.views = views;
+      setIdea(i);
+
+      if (i.authorId) {
+        const auth = await getStudentProfileById(i.authorId);
+        setAuthor(auth);
+      }
+
+      const commentsArr: any[] = Array.isArray(i.comments) ? i.comments as any[] : [];
+      const ca: Record<string, any> = {};
+      for (const c of commentsArr) {
+        if (c && !ca[c.authorId]) {
+          const cAuth = await getStudentProfileById(c.authorId);
+          if (cAuth) ca[c.authorId] = cAuth;
+        }
+      }
+      setCommentAuthors(ca);
+      
+      setLoading(false);
+    }
+    load();
   }, [id, role, router]);
 
   if (loading || !idea) return null;
 
-  const author = StudentStore.getById(idea.authorId);
-  const liked = userId ? idea.likes.includes(userId) : false;
-  const bookmarked = userId ? idea.bookmarks.includes(userId) : false;
+  const liked = userId ? idea.likes?.includes(userId) : false;
+  const bookmarked = userId ? idea.bookmarks?.includes(userId) : false;
   const isOwner = userId === idea.authorId;
 
-  function toggleLike() {
+  async function toggleLike() {
     if (!userId || !idea) return;
-    const i = { ...idea, likes: liked ? idea.likes.filter(x => x !== userId) : [...idea.likes, userId] };
-    IdeaStore.save(i); setIdea(i);
+    const newLikes = liked ? idea.likes.filter((x: string) => x !== userId) : [...(idea.likes || []), userId];
+    const i = { ...idea, likes: newLikes };
+    setIdea(i);
+    await updateIdea(id, { likes: newLikes });
   }
-  function toggleBookmark() {
+  async function toggleBookmark() {
     if (!userId || !idea) return;
-    const i = { ...idea, bookmarks: bookmarked ? idea.bookmarks.filter(x => x !== userId) : [...idea.bookmarks, userId] };
-    IdeaStore.save(i); setIdea(i);
+    const newBookmarks = bookmarked ? idea.bookmarks.filter((x: string) => x !== userId) : [...(idea.bookmarks || []), userId];
+    const i = { ...idea, bookmarks: newBookmarks };
+    setIdea(i);
+    await updateIdea(id, { bookmarks: newBookmarks });
   }
-  function postComment() {
+  async function postComment() {
     if (!userId || !comment.trim() || !idea) return;
     const c: Comment = { id: generateId(), authorId: userId, content: comment.trim().slice(0, 2000), likes: [], replies: [], isReported: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    const i = { ...idea, comments: [...idea.comments, c] };
-    IdeaStore.save(i); setIdea(i); setComment('');
+    const newComments = [...(Array.isArray(idea.comments) ? idea.comments : []), c];
+    const i = { ...idea, comments: newComments };
+    setIdea(i); setComment('');
+    await updateIdea(id, { comments: newComments });
+    
+    if (!commentAuthors[userId]) {
+      const cAuth = await getStudentProfileById(userId);
+      if (cAuth) setCommentAuthors(prev => ({ ...prev, [userId]: cAuth }));
+    }
   }
 
   return (
@@ -103,28 +139,28 @@ export default function IdeaDetailPage() {
               {idea.roadmap && <IdeaSection title="Roadmap">{idea.roadmap}</IdeaSection>}
 
               {/* Resources + Skills needed */}
-              {idea.neededResources.length > 0 && (
+              {(idea.neededResources || []).length > 0 && (
                 <div className={styles.section}>
                   <h2 className={styles.sectionTitle}>Resources needed</h2>
-                  <ul className={styles.bulletList}>{idea.neededResources.map(r => <li key={r}>{r}</li>)}</ul>
+                  <ul className={styles.bulletList}>{(idea.neededResources || []).map((r: string) => <li key={r}>{r}</li>)}</ul>
                 </div>
               )}
-              {idea.neededSkills.length > 0 && (
+              {(idea.rolesNeeded || idea.neededSkills || []).length > 0 && (
                 <div className={styles.section}>
                   <h2 className={styles.sectionTitle}>Looking for collaborators with</h2>
-                  <div className="chip-list">{idea.neededSkills.map(s => <span key={s} className="chip">{s}</span>)}</div>
+                  <div className="chip-list">{(idea.rolesNeeded || idea.neededSkills || []).map((s: string) => <span key={s} className="chip">{s}</span>)}</div>
                 </div>
               )}
-              {idea.tags.length > 0 && (
+              {(idea.tags || []).length > 0 && (
                 <div className={styles.section}>
                   <h2 className={styles.sectionTitle}><Tag size={15} /> Tags</h2>
-                  <div className="chip-list">{idea.tags.map(t => <span key={t} className="chip">{t}</span>)}</div>
+                  <div className="chip-list">{(idea.tags || []).map((t: string) => <span key={t} className="chip">{t}</span>)}</div>
                 </div>
               )}
-              {idea.sdgAlignment.length > 0 && (
+              {(idea.sdgMapping || idea.sdgAlignment || []).length > 0 && (
                 <div className={styles.section}>
                   <h2 className={styles.sectionTitle}>SDG Alignment</h2>
-                  <div className="chip-list">{idea.sdgAlignment.map(s => <span key={s} className="badge badge-success">{s}</span>)}</div>
+                  <div className="chip-list">{(idea.sdgMapping || idea.sdgAlignment || []).map((s: string) => <span key={s} className="badge badge-success">{s}</span>)}</div>
                 </div>
               )}
 
@@ -143,8 +179,8 @@ export default function IdeaDetailPage() {
                   <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-4)' }}><Link href="/login" style={{ color: 'var(--primary-l)', fontWeight: 600 }}>Sign in</Link> to comment.</p>
                 )}
                 <div className={styles.commentList}>
-                  {idea.comments.map(c => {
-                    const ca = StudentStore.getById(c.authorId);
+                  {(Array.isArray(idea.comments) ? idea.comments : []).map((c: any) => {
+                    const ca = commentAuthors[c.authorId];
                     return (
                       <div key={c.id} className={styles.comment}>
                         <img src={ca?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=${c.authorId}`} alt="" className="avatar avatar-sm" />
@@ -172,7 +208,7 @@ export default function IdeaDetailPage() {
                     </div>
                   </Link>
                   {author.bio && <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-3)', lineHeight: 1.6 }}>{author.bio}</p>}
-                  <div className="chip-list" style={{ marginTop: 'var(--space-3)' }}>{author.skills.slice(0, 4).map(s => <span key={s} className="chip">{s}</span>)}</div>
+                  <div className="chip-list" style={{ marginTop: 'var(--space-3)' }}>{(author.skills || []).slice(0, 4).map((s: string) => <span key={s} className="chip">{s}</span>)}</div>
                 </div>
               )}
               <div className="card" style={{ padding: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>

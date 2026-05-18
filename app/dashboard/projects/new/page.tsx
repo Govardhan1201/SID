@@ -5,9 +5,8 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { ProjectStore, IdeaStore } from '@/lib/store';
-import { generateId, sanitizeString } from '@/lib/security';
-import type { Project } from '@/types';
+import { createProject } from '@/app/actions/projects';
+import { sanitizeString } from '@/lib/security';
 import { ArrowLeft, ArrowRight, Save, Eye } from 'lucide-react';
 import styles from '../../submit.module.css';
 
@@ -65,13 +64,12 @@ function NewProjectForm() {
   async function saveProject(status: 'draft' | 'published') {
     if (!userId || !studentProfile) return;
     setSaving(true);
-    const project: Project = {
-      id: generateId(),
+    const projectData = {
       authorId: userId,
       title: sanitizeString(title),
       tagline: sanitizeString(tagline),
       summary: sanitizeString(summary),
-      description: sanitizeString(description),
+      description: sanitizeString(description) || (sanitizeString(problem) + '\n\n' + sanitizeString(solution)),
       problemStatement: sanitizeString(problem),
       solution: sanitizeString(solution),
       impact: sanitizeString(impact),
@@ -97,12 +95,10 @@ function NewProjectForm() {
       views: 0, likes: [], bookmarks: [], comments: [],
       version: 1,
       versionHistory: [{ version: 1, savedAt: new Date().toISOString(), summary: status === 'draft' ? 'Draft saved' : 'Initial submission' }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
-    ProjectStore.save(project);
+    const savedProject = await createProject(projectData);
     setSaving(false);
-    router.push(`/project/${project.id}`);
+    router.push(`/project/${savedProject.id}`);
   }
 
   if (isLoading || !userId) return null;

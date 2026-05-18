@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { TeamStore } from '@/lib/store';
+import { getAllTeams } from '@/app/actions/teams';
 import { useAuth } from '@/context/AuthContext';
 import type { Team } from '@/types';
 import { Users, Plus, Search } from 'lucide-react';
@@ -14,7 +14,13 @@ export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [query, setQuery] = useState('');
 
-  useEffect(() => { setTeams(TeamStore.getAll()); }, []);
+  useEffect(() => {
+    async function load() {
+      const allTeams = await getAllTeams();
+      setTeams(allTeams as unknown as Team[]);
+    }
+    load();
+  }, []);
 
   const filtered = teams.filter(t =>
     !query || [t.name, t.description, ...t.skills].some(f => f.toLowerCase().includes(query.toLowerCase()))
@@ -47,7 +53,7 @@ export default function TeamsPage() {
             : (
               <div className="grid-3">
                 {filtered.map(t => {
-                  const isMember = userId ? t.members.some(m => m.userId === userId) : false;
+                  const isMember = userId ? (t as any).memberIds?.includes(userId) : false;
                   return (
                     <Link key={t.id} href={`/team/${t.id}`} className={`card card-hover ${styles.teamCard}`}>
                       <div className={styles.teamBody}>
@@ -55,7 +61,7 @@ export default function TeamsPage() {
                           <img src={t.avatar} alt={t.name} className="avatar avatar-lg" />
                           <div>
                             <h3 className={styles.teamName}>{t.name}</h3>
-                            <p className={styles.teamMeta}>{t.members.length} members · {t.projectIds.length} projects</p>
+                            <p className={styles.teamMeta}>{(t as any).memberIds?.length || 0} members · {(t as any).projectIds?.length || 0} projects</p>
                           </div>
                           {t.isOpen && <span className="badge badge-success" style={{ marginLeft: 'auto' }}>Open</span>}
                         </div>
@@ -63,11 +69,11 @@ export default function TeamsPage() {
                         <div className="chip-list">
                           {t.skills.slice(0, 4).map(s => <span key={s} className="chip">{s}</span>)}
                         </div>
-                        {t.lookingFor.length > 0 && (
+                        {(t as any).rolesNeeded?.length > 0 && (
                           <div style={{ marginTop: 'var(--space-2)' }}>
                             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)', marginBottom: 4 }}>Looking for:</p>
                             <div className="chip-list">
-                              {t.lookingFor.map(r => <span key={r} className="badge badge-accent">{r}</span>)}
+                              {(t as any).rolesNeeded.map((r: string) => <span key={r} className="badge badge-accent">{r}</span>)}
                             </div>
                           </div>
                         )}

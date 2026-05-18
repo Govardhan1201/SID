@@ -4,7 +4,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { TeamStore, StudentStore, ProjectStore, IdeaStore } from '@/lib/store';
+import { getTeamById } from '@/app/actions/teams';
+import { getStudentProfileById } from '@/app/actions/users';
+import { getProjectById } from '@/app/actions/projects';
+import { getIdeaById } from '@/app/actions/ideas';
 import { useAuth } from '@/context/AuthContext';
 import type { Team } from '@/types';
 import ProjectCard from '@/components/cards/ProjectCard';
@@ -20,18 +23,50 @@ export default function TeamPage() {
   const [team, setTeam] = useState<Team | null>(null);
   const [tab, setTab] = useState<TeamTab>('projects');
 
+  const [loading, setLoading] = useState(true);
+  const [leader, setLeader] = useState<any>(null);
+  const [teamProjects, setTeamProjects] = useState<any[]>([]);
+  const [teamIdeas, setTeamIdeas] = useState<any[]>([]);
+  const [memberProfiles, setMemberProfiles] = useState<Record<string, any>>({});
+
   useEffect(() => {
-    const t = TeamStore.getById(id);
-    if (!t) { router.replace('/teams'); return; }
-    setTeam(t);
+    async function load() {
+      const t = await getTeamById(id);
+      if (!t) { router.replace('/teams'); return; }
+      setTeam(t as any);
+
+      if (t.leaderId) {
+        setLeader(await getStudentProfileById(t.leaderId));
+      }
+
+      const pIds = Array.isArray((t as any).projectIds) ? (t as any).projectIds : [];
+      const iIds = Array.isArray((t as any).ideaIds) ? (t as any).ideaIds : [];
+      
+      const pData = await Promise.all(pIds.map((pid: string) => getProjectById(pid)));
+      const iData = await Promise.all(iIds.map((iid: string) => getIdeaById(iid)));
+      
+      setTeamProjects(pData.filter(Boolean));
+      setTeamIdeas(iData.filter(Boolean));
+
+      const profiles: Record<string, any> = {};
+      const membersArr = Array.isArray((t as any).members) ? (t as any).members : [];
+      for (const m of membersArr) {
+        if (!profiles[m.userId]) {
+          const s = await getStudentProfileById(m.userId);
+          if (s) profiles[m.userId] = s;
+        }
+      }
+      setMemberProfiles(profiles);
+
+      setLoading(false);
+    }
+    load();
   }, [id, router]);
 
-  if (!team) return null;
+  if (loading || !team) return null;
 
-  const leader = StudentStore.getById(team.leaderId);
-  const teamProjects = team.projectIds.map(pid => ProjectStore.getById(pid)).filter(Boolean) as ReturnType<typeof ProjectStore.getById>[];
-  const teamIdeas = team.ideaIds.map(iid => IdeaStore.getById(iid)).filter(Boolean) as ReturnType<typeof IdeaStore.getById>[];
-  const isMember = userId ? team.members.some(m => m.userId === userId) : false;
+  const membersArr = Array.isArray((team as any).members) ? (team as any).members : [];
+  const isMember = userId ? membersArr.some((m: any) => m.userId === userId) : false;
 
   return (
     <div className="page">
@@ -54,7 +89,7 @@ export default function TeamPage() {
 
               <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
                 <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Users size={13} /> {team.members.length} members
+                  <Users size={13} /> {membersArr.length} members
                 </span>
                 <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
                   <Layers size={13} /> {teamProjects.length} projects
@@ -105,7 +140,7 @@ export default function TeamPage() {
           <div className="tabs">
             <button className={`tab-btn ${tab === 'projects' ? 'active' : ''}`} onClick={() => setTab('projects')}>Projects ({teamProjects.length})</button>
             <button className={`tab-btn ${tab === 'ideas' ? 'active' : ''}`} onClick={() => setTab('ideas')}>Ideas ({teamIdeas.length})</button>
-            <button className={`tab-btn ${tab === 'members' ? 'active' : ''}`} onClick={() => setTab('members')}>Members ({team.members.length})</button>
+            <button className={`tab-btn ${tab === 'members' ? 'active' : ''}`} onClick={() => setTab('members')}>Members ({membersArr.length})</button>
           </div>
 
           {tab === 'projects' && (
@@ -120,8 +155,8 @@ export default function TeamPage() {
           )}
           {tab === 'members' && (
             <div className="grid-3">
-              {team.members.map(m => {
-                const s = StudentStore.getById(m.userId);
+              {membersArr.map((m: any) => {
+                const s = memberProfiles[m.userId];
                 if (!s) return null;
                 return (
                   <Link key={m.userId} href={`/profile/${m.userId}`} className="card card-hover" style={{ padding: 'var(--space-5)', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>

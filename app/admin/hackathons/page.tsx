@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/context/AuthContext';
-import { HackathonStore } from '@/lib/hackathon-store';
+import { getAllHackathons } from '@/app/actions/hackathon';
 import type { Hackathon } from '@/types';
 import { Plus, Trophy, Clock, CheckCircle, Users, Calendar, ChevronRight, Layers } from 'lucide-react';
 import styles from './hackathons.module.css';
@@ -26,7 +26,11 @@ export default function HackathonsPage() {
   }, [role, isLoading, router]);
 
   useEffect(() => {
-    setHackathons(HackathonStore.getAll().sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+    async function load() {
+      const data = await getAllHackathons();
+      setHackathons(data as unknown as Hackathon[]);
+    }
+    load();
   }, []);
 
   if (isLoading || role !== 'admin') return null;

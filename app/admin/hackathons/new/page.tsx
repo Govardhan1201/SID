@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/context/AuthContext';
-import { HackathonStore } from '@/lib/hackathon-store';
+import { createHackathon } from '@/app/actions/hackathon';
 import { generateJudgeToken } from '@/lib/password-gen';
 import { hashPassword, generateId } from '@/lib/security';
 import type { Hackathon, HackathonTrack } from '@/types';
@@ -56,8 +56,7 @@ export default function NewHackathonPage() {
     setSaving(true);
     try {
       const judgePasswordHash = await hashPassword(judgePass);
-      const hackathon: Hackathon = {
-        id:               generateId(),
+      const hackathon = await createHackathon({
         name:             name.trim(),
         tagline:          tagline.trim(),
         description:      description.trim(),
@@ -68,13 +67,11 @@ export default function NewHackathonPage() {
         announcements:    [],
         judgeToken:       generateJudgeToken(),
         judgePasswordHash,
-        createdBy:        '',  // filled by auth context in real app
-        createdAt:        new Date().toISOString(),
-        updatedAt:        new Date().toISOString(),
-      };
-      HackathonStore.save(hackathon);
+        createdBy:        'admin',  // filled by auth context in real app
+      });
       router.push(`/admin/hackathons/${hackathon.id}`);
-    } catch {
+    } catch (e) {
+      console.error(e);
       setError('Something went wrong. Please try again.');
       setSaving(false);
     }

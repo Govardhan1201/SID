@@ -123,6 +123,21 @@ export async function createHackathonProject(data: any) {
   });
 }
 
+export async function updateHackathonProject(id: string, data: any) {
+  return await prisma.hackathonProject.update({
+    where: { id },
+    data: {
+      trackId: data.trackId,
+      title: data.title,
+      tagline: data.tagline,
+      description: data.description,
+      githubLink: data.githubLink,
+      demoLink: data.demoLink,
+      videoLink: data.videoLink,
+    }
+  });
+}
+
 export async function createHackathonTeam(data: any) {
   return await prisma.hackathonTeam.create({
     data: {
@@ -146,4 +161,107 @@ export async function addHackathonParticipant(data: any) {
       role: data.role
     }
   });
+}
+
+export async function importHackathonParticipants(
+  hackathonId: string, 
+  data: { 
+    name: string; 
+    email: string; 
+    team_name: string; 
+    role: string;
+    college?: string;
+    branch?: string;
+    year?: string;
+  }[]
+) {
+  const bcrypt = require('bcryptjs');
+  const passwordGen = require('@/lib/password-gen');
+  
+  const results = { created: 0, skipped: 0, errors: [] as string[], credentials: [] as any[] };
+
+  const teamsMap = new Map<string, typeof data>();
+  data.forEach(row => {
+    if (!teamsMap.has(row.team_name)) teamsMap.set(row.team_name, []);
+    teamsMap.get(row.team_name)!.push(row);
+  });
+
+  for (const [teamName, members] of teamsMap.entries()) {
+    try {
+      const userIds: string[] = [];
+      let leaderId = '';
+
+      for (const member of members) {
+        let user = await prisma.user.findUnique({ where: { email: member.email } });
+        const plainPassword = passwordGen.generateJudgeToken().substring(0, 8); // Simple password
+        const hash = await bcrypt.hash(plainPassword, 10);
+        
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email: member.email,
+              passwordHash: hash,
+              role: 'student',
+              studentProfile: {
+                create: {
+                  name: member.name,
+                  college: member.college || '',
+                  branch: member.branch || '',
+                  year: member.year ? parseInt(member.year) : 1
+                }
+              }
+            }
+          });
+          results.created++;
+        } else {
+          results.skipped++;
+        }
+
+        userIds.push(user.id);
+        if (member.role.toLowerCase() === 'leader') leaderId = user.id;
+
+        results.credentials.push({
+          Name: member.name,
+          Email: member.email,
+          Team: teamName,
+          Role: member.role,
+          Password: plainPassword
+        });
+      }
+
+      if (!leaderId && userIds.length > 0) leaderId = userIds[0];
+
+      const teamPassword = passwordGen.generateJudgeToken().substring(0, 8);
+      const teamHash = await bcrypt.hash(teamPassword, 10);
+
+      const team = await prisma.hackathonTeam.create({
+        data: {
+          hackathonId,
+          name: teamName,
+          passwordHash: teamHash,
+          plainPassword: teamPassword,
+          leaderId,
+          memberIds: userIds
+        }
+      });
+
+      for (const member of members) {
+        const u = await prisma.user.findUnique({ where: { email: member.email } });
+        if (u) {
+          await prisma.hackathonParticipant.create({
+            data: {
+              hackathonId,
+              userId: u.id,
+              teamId: team.id,
+              role: member.role.toLowerCase() === 'leader' ? 'leader' : 'member'
+            }
+          });
+        }
+      }
+    } catch (err) {
+      results.errors.push(`Failed to import team ${teamName}: ${err}`);
+    }
+  }
+
+  return results;
 }

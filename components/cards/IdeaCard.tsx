@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Eye, Heart, Bookmark, ArrowUpRight } from 'lucide-react';
 import type { Idea } from '@/types';
-import { StudentStore } from '@/lib/store';
+import { useState, useEffect } from 'react';
 import styles from './IdeaCard.module.css';
 
 const STAGE_LABELS: Record<string, string> = {
@@ -25,8 +25,17 @@ interface Props {
 }
 
 export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Props) {
-  const author = StudentStore.getById(idea.authorId);
-  const liked = currentUserId ? idea.likes.includes(currentUserId) : false;
+  const [author, setAuthor] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+      const { getStudentProfileById } = require('@/app/actions/users');
+      setAuthor(await getStudentProfileById(idea.authorId));
+    }
+    load();
+  }, [idea.authorId]);
+
+  const liked    = currentUserId ? idea.likes.includes(currentUserId)     : false;
   const bookmarked = currentUserId ? idea.bookmarks.includes(currentUserId) : false;
 
   return (

@@ -4,7 +4,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { StudentStore, ProjectStore, IdeaStore, TeamStore, UserStore } from '@/lib/store';
+import { getStudentProfileById, updateStudentProfile } from '@/app/actions/users';
+import { getProjectsByUserId } from '@/app/actions/projects';
+import { getIdeasByUserId } from '@/app/actions/ideas';
+import { getTeamsByUserId } from '@/app/actions/teams';
 import { useAuth } from '@/context/AuthContext';
 import type { StudentProfile, Project, Idea, Team } from '@/types';
 import ProjectCard from '@/components/cards/ProjectCard';
@@ -36,33 +39,45 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    const p = StudentStore.getById(id);
-    if (!p) return;
-    setProfile(p);
+    async function loadData() {
+      const p = await getStudentProfileById(id);
+      if (!p) return;
+      setProfile(p as unknown as StudentProfile);
 
-    const visRole = role ?? 'public';
-    const ps = ProjectStore.getByAuthor(id).filter(p => {
-      if (p.status !== 'published') return false;
-      if (p.visibility === 'admin-only') return visRole === 'admin' || visRole === 'recruiter';
-      return true;
-    });
-    setProjects(ps);
-    setIdeas(IdeaStore.getByAuthor(id).filter(i => {
-      if (i.status !== 'published') return false;
-      if (i.visibility === 'admin-only') return visRole === 'admin' || visRole === 'recruiter';
-      return true;
-    }));
-    setTeams(TeamStore.getByMember(id));
+      const visRole = role ?? 'public';
+      const allPs = await getProjectsByUserId(id);
+      const ps = allPs.filter((p: any) => {
+        if (p.status !== 'published') return false;
+        if (p.visibility === 'admin-only') return visRole === 'admin' || visRole === 'recruiter';
+        return true;
+      });
+      setProjects(ps as unknown as Project[]);
+      
+      const allIs = await getIdeasByUserId(id);
+      setIdeas(allIs.filter((i: any) => {
+        if (i.status !== 'published') return false;
+        if (i.visibility === 'admin-only') return visRole === 'admin' || visRole === 'recruiter';
+        return true;
+      }) as unknown as Idea[]);
+      
+      setTeams(await getTeamsByUserId(id) as unknown as Team[]);
 
-    if (userId) setIsFollowing(p.followers.includes(userId));
+      if (userId) setIsFollowing(p.followers.includes(userId));
+    }
+    loadData();
   }, [id, userId, role]);
 
-  function toggleFollow() {
+  async function toggleFollow() {
     if (!userId || !profile) return;
     const p = { ...profile };
     if (isFollowing) p.followers = p.followers.filter(f => f !== userId);
     else p.followers = [...p.followers, userId];
-    StudentStore.save(p); setProfile(p); setIsFollowing(!isFollowing);
+    setProfile(p); 
+    setIsFollowing(!isFollowing);
+    
+    try {
+      await updateStudentProfile(profile.userId, { followers: p.followers });
+    } catch(e) {}
   }
 
   if (!profile) return (
@@ -73,7 +88,6 @@ export default function ProfilePage() {
   );
 
   const isOwn = userId === profile.userId;
-  const user = UserStore.getById(profile.userId);
 
   return (
     <div className="page">

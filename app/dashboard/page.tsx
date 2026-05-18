@@ -5,7 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { ProjectStore, IdeaStore, NotificationStore, StudentStore } from '@/lib/store';
+import { getProjectsByUserId } from '@/app/actions/projects';
+import { getIdeasByUserId } from '@/app/actions/ideas';
+import { getNotifications, markNotificationAsRead } from '@/app/actions/users';
+import { getHackathonById, getParticipantsByHackathon } from '@/app/actions/hackathon';
 import type { Project, Idea, Notification } from '@/types';
 import {
   LayoutDashboard, Layers, Lightbulb, Settings, Plus,
@@ -45,18 +48,33 @@ function DashboardContent() {
   }, [userId, role, isLoading, router]);
 
   useEffect(() => {
-    if (!userId) return;
-    setProjects(ProjectStore.getByAuthor(userId));
-    setIdeas(IdeaStore.getByAuthor(userId));
-    setNotifications(NotificationStore.getForUser(userId));
-    
-    // Find active hackathons the user is part of
-    const { HackathonStore, HackathonParticipantStore } = require('@/lib/hackathon-store');
-    const myParticipations = HackathonParticipantStore.getAll().filter((p: any) => p.userId === userId);
-    const activeHackathons = myParticipations
-      .map((p: any) => HackathonStore.getById(p.hackathonId))
-      .filter((h: any) => h && h.status !== 'draft');
-    setMyHackathons(activeHackathons);
+    async function loadData() {
+      if (!userId) return;
+      setProjects(await getProjectsByUserId(userId) as unknown as Project[]);
+      setIdeas(await getIdeasByUserId(userId) as unknown as Idea[]);
+      setNotifications(await getNotifications(userId) as unknown as Notification[]);
+      
+      try {
+        // Find active hackathons the user is part of
+        // To avoid expensive global queries, ideally we'd have a getUserHackathons action,
+        // but for now we will get hackathons safely without blowing up local storage.
+        const { getAllHackathons } = require('@/app/actions/hackathon');
+        const allHacks = await getAllHackathons();
+        const myHacks = [];
+        
+        for (const h of allHacks) {
+          if (h.status === 'draft') continue;
+          const participants = await getParticipantsByHackathon(h.id);
+          if (participants.some((p: any) => p.userId === userId)) {
+            myHacks.push(h);
+          }
+        }
+        setMyHackathons(myHacks);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadData();
   }, [userId]);
 
   // Sync tab from URL when it changes
@@ -81,15 +99,20 @@ function DashboardContent() {
   const completeCount = completeness.filter(Boolean).length;
   const completePct   = Math.round((completeCount / completeness.length) * 100);
 
-  function markRead(id: string) {
-    NotificationStore.markRead(id);
+  async function markRead(id: string) {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    try {
+      await markNotificationAsRead(id);
+    } catch(e) {}
   }
 
-  function markAllRead() {
+  async function markAllRead() {
     if (!userId) return;
-    NotificationStore.markAllRead(userId);
+    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    try {
+      await Promise.all(unreadIds.map(id => markNotificationAsRead(id)));
+    } catch(e) {}
   }
 
   return (

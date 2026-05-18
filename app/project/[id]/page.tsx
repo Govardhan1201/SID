@@ -4,7 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { ProjectStore, StudentStore, IdeaStore } from '@/lib/store';
+import { getProjectById, updateProject } from '@/app/actions/projects';
+import { getStudentProfileById } from '@/app/actions/users';
 import { useAuth } from '@/context/AuthContext';
 import { generateId } from '@/lib/security';
 import type { Project, Comment, StudentProfile } from '@/types';
@@ -17,25 +18,45 @@ export default function ProjectDetailPage() {
   const { role, userId, studentProfile } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [author, setAuthor] = useState<StudentProfile | null>(null);
+  const [commentAuthors, setCommentAuthors] = useState<Record<string, StudentProfile>>({});
+  const [teamAuthors, setTeamAuthors] = useState<Record<string, StudentProfile>>({});
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const p = ProjectStore.getById(id);
-    if (!p) { router.replace('/explore'); return; }
-    if (p.visibility === 'admin-only' && role === null) { router.replace('/login'); return; }
+    async function loadData() {
+      const p = await getProjectById(id);
+      if (!p) { router.replace('/explore'); return; }
+      if (p.visibility === 'admin-only' && role === null) { router.replace('/login'); return; }
 
-    // Deduplicate view count: only increment once per browser session per project
-    const viewKey = `viewed_project_${id}`;
-    if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
-      p.views++;
-      ProjectStore.save(p);
-      sessionStorage.setItem(viewKey, '1');
+      // Deduplicate view count: only increment once per browser session per project
+      const viewKey = `viewed_project_${id}`;
+      if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
+        p.views++;
+        sessionStorage.setItem(viewKey, '1');
+        try {
+          await updateProject(id, { views: p.views });
+        } catch(e) {}
+      }
+
+      setProject(p as unknown as Project);
+      setAuthor(await getStudentProfileById(p.authorId) as unknown as StudentProfile ?? null);
+      
+      const cArr = Array.isArray(p.comments) ? p.comments : [];
+      const cAuthors = await Promise.all(cArr.map((c: any) => getStudentProfileById(c.authorId)));
+      const cAuthorMap: Record<string, StudentProfile> = {};
+      cAuthors.forEach((a: any) => { if (a) cAuthorMap[a.userId] = a; });
+      setCommentAuthors(cAuthorMap);
+
+      const tArr = Array.isArray(p.teamMembers) ? p.teamMembers : [];
+      const tAuthors = await Promise.all(tArr.map((m: any) => getStudentProfileById(m.userId)));
+      const tAuthorMap: Record<string, StudentProfile> = {};
+      tAuthors.forEach((a: any) => { if (a) tAuthorMap[a.userId] = a; });
+      setTeamAuthors(tAuthorMap);
+
+      setLoading(false);
     }
-
-    setProject(p);
-    setAuthor(StudentStore.getById(p.authorId) ?? null);
-    setLoading(false);
+    loadData();
   }, [id, role, router]);
 
   if (loading || !project) return null;
@@ -43,23 +64,29 @@ export default function ProjectDetailPage() {
   const liked = userId ? project.likes.includes(userId) : false;
   const bookmarked = userId ? project.bookmarks.includes(userId) : false;
 
-  function toggleLike() {
+  async function toggleLike() {
     if (!userId || !project) return;
     const p = { ...project };
     if (liked) p.likes = p.likes.filter(x => x !== userId);
     else p.likes = [...p.likes, userId];
-    ProjectStore.save(p); setProject(p);
+    setProject(p);
+    try {
+      await updateProject(id, { likes: p.likes });
+    } catch(e) {}
   }
 
-  function toggleBookmark() {
+  async function toggleBookmark() {
     if (!userId || !project) return;
     const p = { ...project };
     if (bookmarked) p.bookmarks = p.bookmarks.filter(x => x !== userId);
     else p.bookmarks = [...p.bookmarks, userId];
-    ProjectStore.save(p); setProject(p);
+    setProject(p);
+    try {
+      await updateProject(id, { bookmarks: p.bookmarks });
+    } catch(e) {}
   }
 
-  function postComment() {
+  async function postComment() {
     if (!userId || !comment.trim() || !project) return;
     const c: Comment = {
       id: generateId(), authorId: userId,
@@ -68,7 +95,10 @@ export default function ProjectDetailPage() {
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     const p = { ...project, comments: [...project.comments, c] };
-    ProjectStore.save(p); setProject(p); setComment('');
+    setProject(p); setComment('');
+    try {
+      await updateProject(id, { comments: p.comments });
+    } catch(e) {}
   }
 
   const isOwner = userId === project.authorId;
@@ -162,7 +192,7 @@ export default function ProjectDetailPage() {
                 )}
                 <div className={styles.commentList}>
                   {project.comments.map(c => {
-                    const ca = StudentStore.getById(c.authorId);
+                    const ca = commentAuthors[c.authorId];
                     return (
                       <div key={c.id} className={styles.comment}>
                         <img src={ca?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=${c.authorId}`} alt="" className="avatar avatar-sm" />
@@ -210,7 +240,7 @@ export default function ProjectDetailPage() {
                   <div className={styles.teamList}>
                     {project.teamMembers.map(m => (
                       <div key={m.userId} className={styles.teamMember}>
-                        <img src={StudentStore.getById(m.userId)?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=${m.name}`} alt={m.name} className="avatar avatar-sm" />
+                        <img src={teamAuthors[m.userId]?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=${m.name}`} alt={m.name} className="avatar avatar-sm" />
                         <div>
                           <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-1)' }}>{m.name}</div>
                           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)' }}>{m.role}</div>

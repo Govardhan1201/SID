@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { StudentStore, ProjectStore, IdeaStore, RecruiterStore } from '@/lib/store';
+import { getAllStudentProfiles, updateRecruiterProfile } from '@/app/actions/users';
+import { getVisibleProjects } from '@/app/actions/projects';
+import { getVisibleIdeas } from '@/app/actions/ideas';
 import type { StudentProfile } from '@/types';
 import StudentCard from '@/components/cards/StudentCard';
 import { Search, Bookmark, User, LayoutDashboard, Settings, X, SlidersHorizontal, ArrowRight } from 'lucide-react';
@@ -26,14 +28,25 @@ export default function RecruiterPage() {
   const [domainFilter, setDomainFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [shortlist, setShortlist] = useState<string[]>([]);
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [totalIdeas, setTotalIdeas] = useState(0);
 
   useEffect(() => {
     if (!isLoading && (!userId || role !== 'recruiter')) router.replace('/login');
   }, [userId, role, isLoading, router]);
 
   useEffect(() => {
-    setStudents(StudentStore.getAll());
-    if (recruiterProfile) setShortlist(recruiterProfile.shortlisted);
+    async function load() {
+      const s = await getAllStudentProfiles();
+      setStudents(s as unknown as StudentProfile[]);
+      if (recruiterProfile) setShortlist(recruiterProfile.shortlisted || []);
+
+      const p = await getVisibleProjects('public');
+      setTotalProjects(p.length);
+      const i = await getVisibleIdeas('public');
+      setTotalIdeas(i.length);
+    }
+    load();
   }, [recruiterProfile]);
 
   function filtered() {
@@ -46,17 +59,15 @@ export default function RecruiterPage() {
     });
   }
 
-  function toggleShortlist(uid: string) {
+  async function toggleShortlist(uid: string) {
     if (!userId || !recruiterProfile) return;
     const next = shortlist.includes(uid) ? shortlist.filter(x => x !== uid) : [...shortlist, uid];
     setShortlist(next);
-    RecruiterStore.save({ ...recruiterProfile, shortlisted: next });
+    await updateRecruiterProfile(userId, { shortlisted: next });
     refreshProfile();
   }
 
   const shortlisted = students.filter(s => shortlist.includes(s.userId));
-  const totalProjects = ProjectStore.getAll().filter(p => p.status === 'published').length;
-  const totalIdeas = IdeaStore.getAll().filter(i => i.status === 'published').length;
 
   if (isLoading || !recruiterProfile) return null;
 

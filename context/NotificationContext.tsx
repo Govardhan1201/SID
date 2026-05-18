@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { NotificationStore } from '@/lib/store';
-import { generateId } from '@/lib/security';
+import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, createNotification } from '@/app/actions/users';
 import type { Notification } from '@/types';
 import { useAuth } from './AuthContext';
 
@@ -20,30 +19,30 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const { userId } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     if (!userId) { setNotifications([]); return; }
-    setNotifications(NotificationStore.getForUser(userId));
+    const notifs = await getNotifications(userId);
+    setNotifications(notifs as unknown as Notification[]);
   }, [userId]);
 
   useEffect(() => { load(); }, [load]);
 
-  const markRead = (id: string) => {
-    NotificationStore.markRead(id);
+  const markRead = async (id: string) => {
+    await markNotificationAsRead(id);
     load();
   };
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
     if (!userId) return;
-    NotificationStore.markAllRead(userId);
+    await markAllNotificationsAsRead(userId);
     load();
   };
 
-  const addNotification = (n: Omit<Notification, 'id' | 'userId' | 'createdAt' | 'isRead'>) => {
+  const addNotification = async (n: Omit<Notification, 'id' | 'userId' | 'createdAt' | 'isRead'>) => {
     if (!userId) return;
-    const notif: Notification = {
-      ...n, id: generateId(), userId, createdAt: new Date().toISOString(), isRead: false,
-    };
-    NotificationStore.save(notif);
+    await createNotification({
+      ...n, userId
+    });
     load();
   };
 

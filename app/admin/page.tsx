@@ -5,8 +5,10 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { UserStore, ProjectStore, IdeaStore, StudentStore, AuditStore } from '@/lib/store';
-import { generateId } from '@/lib/security';
+import { getAllUsersAdmin, toggleUserBanStatus, getAllAuditLogs, createAuditLog } from '@/app/actions/admin';
+import { getAllProjects, updateProject } from '@/app/actions/projects';
+import { getAllIdeas, updateIdea } from '@/app/actions/ideas';
+import { getAllStudentProfiles } from '@/app/actions/users';
 import type { Project, Idea } from '@/types';
 import { LayoutDashboard, Users, Layers, Lightbulb, Shield, Settings, CheckCircle, XCircle, Star, Archive, Flag, ChevronRight, Trophy } from 'lucide-react';
 import styles from './admin.module.css';
@@ -19,47 +21,63 @@ export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>('overview');
   const [projects, setProjects] = useState<Project[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [studentProfiles, setStudentProfiles] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isLoading && (!userId || role !== 'admin')) router.replace('/login');
   }, [userId, role, isLoading, router]);
 
+  const loadData = async () => {
+    const [p, i, u, a, sp] = await Promise.all([
+      getAllProjects(),
+      getAllIdeas(),
+      getAllUsersAdmin(),
+      getAllAuditLogs(),
+      getAllStudentProfiles()
+    ]);
+    setProjects(p as unknown as Project[]);
+    setIdeas(i as unknown as Idea[]);
+    setUsers(u);
+    setAuditLogs(a);
+    setStudentProfiles(sp);
+  };
+
   useEffect(() => {
-    setProjects(ProjectStore.getAll());
-    setIdeas(IdeaStore.getAll());
+    loadData();
   }, []);
 
-  const users = UserStore.getAll();
   const students = users.filter(u => u.role === 'student');
   const recruiters = users.filter(u => u.role === 'recruiter');
   const pendingP = projects.filter(p => p.moderationStatus === 'pending');
   const pendingI = ideas.filter(i => i.moderationStatus === 'pending');
-  const auditLogs = AuditStore.getAll().slice(0, 20);
 
-  function logAction(action: string, targetType: string, targetId: string, details: string) {
+  async function logAction(action: string, targetType: string, targetId: string, details: string) {
     if (!userId) return;
-    AuditStore.log({ id: generateId(), adminId: userId, action, targetType, targetId, details, timestamp: new Date().toISOString() });
+    await createAuditLog({ adminId: userId, action, targetType, targetId, details });
   }
 
-  function moderateProject(id: string, status: 'approved' | 'rejected' | 'featured' | 'archived') {
-    const p = ProjectStore.getById(id);
+  async function moderateProject(id: string, status: 'approved' | 'rejected' | 'featured' | 'archived') {
+    const p = projects.find(x => x.id === id);
     if (!p) return;
-    ProjectStore.save({ ...p, moderationStatus: status, isFeatured: status === 'featured' });
-    logAction(status, 'project', id, `Project "${p.title}" ${status}`);
-    setProjects(ProjectStore.getAll());
+    await updateProject(id, { moderationStatus: status, isFeatured: status === 'featured' });
+    await logAction(status, 'project', id, `Project "${p.title}" ${status}`);
+    await loadData();
   }
-  function moderateIdea(id: string, status: 'approved' | 'rejected' | 'featured' | 'archived') {
-    const i = IdeaStore.getById(id);
+  async function moderateIdea(id: string, status: 'approved' | 'rejected' | 'featured' | 'archived') {
+    const i = ideas.find(x => x.id === id);
     if (!i) return;
-    IdeaStore.save({ ...i, moderationStatus: status, isFeatured: status === 'featured' });
-    logAction(status, 'idea', id, `Idea "${i.title}" ${status}`);
-    setIdeas(IdeaStore.getAll());
+    await updateIdea(id, { moderationStatus: status, isFeatured: status === 'featured' });
+    await logAction(status, 'idea', id, `Idea "${i.title}" ${status}`);
+    await loadData();
   }
-  function toggleBan(uid: string) {
-    const u = UserStore.getById(uid);
+  async function toggleBan(uid: string) {
+    const u = users.find(x => x.id === uid);
     if (!u || u.role === 'admin') return;
-    UserStore.save({ ...u, isBanned: !u.isBanned });
-    logAction(u.isBanned ? 'unban' : 'ban', 'user', uid, `User ${u.email} ${u.isBanned ? 'unbanned' : 'banned'}`);
+    await toggleUserBanStatus(uid, !u.isBanned);
+    await logAction(u.isBanned ? 'unban' : 'ban', 'user', uid, `User ${u.email} ${u.isBanned ? 'unbanned' : 'banned'}`);
+    await loadData();
   }
 
   const domainCounts: Record<string, number> = {};
@@ -156,7 +174,7 @@ export default function AdminPage() {
                     <div className={styles.section}>
                       <h2 className={styles.sectionTitle}><Layers size={15}/> Pending projects ({pendingP.length})</h2>
                       {pendingP.map(p => {
-                        const author = StudentStore.getById(p.authorId);
+                        const author = studentProfiles.find(x => x.userId === p.authorId);
                         return (
                           <div key={p.id} className={styles.modCard}>
                             <div className={styles.modInfo}>
@@ -184,7 +202,7 @@ export default function AdminPage() {
                     <div className={styles.section}>
                       <h2 className={styles.sectionTitle}><Lightbulb size={15}/> Pending ideas ({pendingI.length})</h2>
                       {pendingI.map(i => {
-                        const author = StudentStore.getById(i.authorId);
+                        const author = studentProfiles.find(x => x.userId === i.authorId);
                         return (
                           <div key={i.id} className={styles.modCard}>
                             <div className={styles.modInfo}>

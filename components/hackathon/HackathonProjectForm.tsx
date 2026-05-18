@@ -1,8 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { HackathonProjectStore } from '@/lib/hackathon-store';
-import { generateId } from '@/lib/security';
+import { createHackathonProject, updateHackathonProject } from '@/app/actions/hackathon';
 import type { Hackathon, HackathonTeam, HackathonProject } from '@/types';
 import { Save, AlertCircle } from 'lucide-react';
 import styles from './project-form.module.css';
@@ -28,7 +27,7 @@ export default function HackathonProjectForm({ hackathon, team, existingProject 
 
   const isPastDeadline = new Date(hackathon.deadline) < new Date();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isPastDeadline) return;
     
@@ -39,93 +38,42 @@ export default function HackathonProjectForm({ hackathon, team, existingProject 
 
     setSaving(true);
     
-    const projId = existingProject?.linkedPortfolioProjectId || generateId();
-    
-    const newProj: HackathonProject = {
-      id: existingProject?.id || generateId(),
-      hackathonId: hackathon.id,
-      teamId: team.id,
-      trackId: trackId,
-      title: title.trim(),
-      tagline: description.trim().substring(0, 100),
-      description: description.trim(),
-      problemSolved: '',
-      techStack: [],
-      githubLink: githubLink.trim(),
-      demoLink: demoLink.trim(),
-      videoLink: videoLink.trim(),
-      presentationLink: '',
-      screenshots: [],
-      status: 'submitted',
-      submittedAt: existingProject?.submittedAt || new Date().toISOString(),
-      linkedPortfolioProjectId: projId,
-      createdAt: existingProject?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    if (team.trackId !== trackId) {
-      const { HackathonTeamStore } = require('@/lib/hackathon-store');
-      HackathonTeamStore.save({ ...team, trackId });
+    try {
+      if (existingProject) {
+        await updateHackathonProject(existingProject.id, {
+          trackId: trackId,
+          title: title.trim(),
+          tagline: description.trim().substring(0, 100),
+          description: description.trim(),
+          githubLink: githubLink.trim(),
+          demoLink: demoLink.trim(),
+          videoLink: videoLink.trim(),
+        });
+      } else {
+        await createHackathonProject({
+          hackathonId: hackathon.id,
+          teamId: team.id,
+          trackId: trackId,
+          title: title.trim(),
+          tagline: description.trim().substring(0, 100),
+          description: description.trim(),
+          problemSolved: '',
+          techStack: [],
+          githubLink: githubLink.trim(),
+          demoLink: demoLink.trim(),
+          videoLink: videoLink.trim(),
+          presentationLink: '',
+          screenshots: [],
+          status: 'submitted',
+        });
+      }
+
+      router.push(`/hackathon/${hackathon.id}`);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to submit project. Please try again.');
+      setSaving(false);
     }
-
-    HackathonProjectStore.save(newProj);
-    
-    const { ProjectStore } = require('@/lib/store');
-    const { UserStore } = require('@/lib/store');
-    
-    const authorId = team.memberIds[0];
-    const author = UserStore.getById(authorId);
-    
-    const teamMembersForMainProj = team.memberIds.map(uid => {
-      const u = UserStore.getById(uid);
-      return {
-        userId: uid,
-        name: u?.name || 'Unknown',
-        role: uid === authorId ? 'Leader' : 'Member',
-        avatar: u?.avatar || ''
-      };
-    });
-
-    const mainProj = ProjectStore.getById(projId);
-    
-    ProjectStore.save({
-      id: projId,
-      title: newProj.title,
-      tagline: newProj.tagline,
-      summary: newProj.description,
-      description: newProj.description,
-      problemStatement: newProj.description,
-      solution: '',
-      impact: '',
-      domain: hackathon.tracks.find(t => t.id === trackId)?.name || 'Hackathon',
-      techStack: [],
-      tags: [hackathon.name.replace(/\s+/g, '-').toLowerCase()],
-      category: 'Hackathon Submission',
-      sdgMapping: [],
-      githubLink: newProj.githubLink,
-      liveDemo: newProj.demoLink,
-      demoVideo: newProj.videoLink,
-      pptLink: '',
-      screenshots: [],
-      attachments: [],
-      authorId: authorId || 'unknown',
-      teamMembers: teamMembersForMainProj,
-      visibility: 'public',
-      status: 'published',
-      moderationStatus: 'approved',
-      isFeatured: false,
-      buildStatus: 'completed',
-      likes: mainProj?.likes || [],
-      bookmarks: mainProj?.bookmarks || [],
-      views: mainProj?.views || 0,
-      comments: mainProj?.comments || [],
-      version: 1,
-      versionHistory: [],
-      createdAt: mainProj?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-    
-    router.push(`/hackathon/${hackathon.id}`);
   }
 
   return (

@@ -6,7 +6,10 @@ import Footer from '@/components/layout/Footer';
 import ProjectCard from '@/components/cards/ProjectCard';
 import IdeaCard from '@/components/cards/IdeaCard';
 import StudentCard from '@/components/cards/StudentCard';
-import { ProjectStore, IdeaStore, StudentStore, TeamStore } from '@/lib/store';
+import { getVisibleProjects } from '@/app/actions/projects';
+import { getVisibleIdeas } from '@/app/actions/ideas';
+import { getAllStudentProfiles } from '@/app/actions/users';
+import { getAllTeams } from '@/app/actions/teams';
 import { useAuth } from '@/context/AuthContext';
 import type { Project, Idea, StudentProfile, Team } from '@/types';
 import { Search, SlidersHorizontal, Users, Layers, Lightbulb, User, X } from 'lucide-react';
@@ -41,67 +44,82 @@ function ExploreContent() {
   const visRole = role ?? 'public';
 
   useEffect(() => {
-    setProjects(ProjectStore.getVisibleTo(visRole as 'admin' | 'recruiter' | 'student' | 'public'));
-    setIdeas(IdeaStore.getVisibleTo(visRole as 'admin' | 'recruiter' | 'student' | 'public'));
-    setStudents(StudentStore.getAll());
-    setTeams(TeamStore.getAll());
+    async function loadData() {
+      setProjects(await getVisibleProjects(visRole as any) as unknown as Project[]);
+      setIdeas(await getVisibleIdeas(visRole as any) as unknown as Idea[]);
+      setStudents(await getAllStudentProfiles() as unknown as StudentProfile[]);
+      setTeams(await getAllTeams() as unknown as Team[]);
+    }
+    loadData();
   }, [visRole]);
 
   // ── Like / Bookmark handlers ──────────────────────────────────────
-  function handleProjectLike(id: string) {
+  async function handleProjectLike(id: string) {
     if (!userId) return;
-    setProjects(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      const liked = p.likes.includes(userId);
-      const updated = {
-        ...p,
-        likes: liked ? p.likes.filter(x => x !== userId) : [...p.likes, userId],
-      };
-      ProjectStore.save(updated);
-      return updated;
-    }));
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    const liked = p.likes.includes(userId);
+    const newLikes = liked ? p.likes.filter(x => x !== userId) : [...p.likes, userId];
+    
+    setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, likes: newLikes } : proj));
+    
+    try {
+      const { updateProject } = require('@/app/actions/projects');
+      await updateProject(id, { likes: newLikes });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  function handleProjectBookmark(id: string) {
+  async function handleProjectBookmark(id: string) {
     if (!userId) return;
-    setProjects(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      const bookmarked = p.bookmarks.includes(userId);
-      const updated = {
-        ...p,
-        bookmarks: bookmarked ? p.bookmarks.filter(x => x !== userId) : [...p.bookmarks, userId],
-      };
-      ProjectStore.save(updated);
-      return updated;
-    }));
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    const bookmarked = p.bookmarks.includes(userId);
+    const newBookmarks = bookmarked ? p.bookmarks.filter(x => x !== userId) : [...p.bookmarks, userId];
+    
+    setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, bookmarks: newBookmarks } : proj));
+    
+    try {
+      const { updateProject } = require('@/app/actions/projects');
+      await updateProject(id, { bookmarks: newBookmarks });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  function handleIdeaLike(id: string) {
+  async function handleIdeaLike(id: string) {
     if (!userId) return;
-    setIdeas(prev => prev.map(i => {
-      if (i.id !== id) return i;
-      const liked = i.likes.includes(userId);
-      const updated = {
-        ...i,
-        likes: liked ? i.likes.filter(x => x !== userId) : [...i.likes, userId],
-      };
-      IdeaStore.save(updated);
-      return updated;
-    }));
+    const i = ideas.find(x => x.id === id);
+    if (!i) return;
+    const liked = i.likes.includes(userId);
+    const newLikes = liked ? i.likes.filter(x => x !== userId) : [...i.likes, userId];
+    
+    setIdeas(prev => prev.map(idea => idea.id === id ? { ...idea, likes: newLikes } : idea));
+    
+    try {
+      const { updateIdea } = require('@/app/actions/ideas');
+      await updateIdea(id, { likes: newLikes });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  function handleIdeaBookmark(id: string) {
+  async function handleIdeaBookmark(id: string) {
     if (!userId) return;
-    setIdeas(prev => prev.map(i => {
-      if (i.id !== id) return i;
-      const bookmarked = i.bookmarks.includes(userId);
-      const updated = {
-        ...i,
-        bookmarks: bookmarked ? i.bookmarks.filter(x => x !== userId) : [...i.bookmarks, userId],
-      };
-      IdeaStore.save(updated);
-      return updated;
-    }));
+    const i = ideas.find(x => x.id === id);
+    if (!i) return;
+    const bookmarked = i.bookmarks.includes(userId);
+    const newBookmarks = bookmarked ? i.bookmarks.filter(x => x !== userId) : [...i.bookmarks, userId];
+    
+    setIdeas(prev => prev.map(idea => idea.id === id ? { ...idea, bookmarks: newBookmarks } : idea));
+    
+    try {
+      const { updateIdea } = require('@/app/actions/ideas');
+      await updateIdea(id, { bookmarks: newBookmarks });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   // ── Filters ───────────────────────────────────────────────────────

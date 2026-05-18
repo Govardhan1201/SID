@@ -5,9 +5,9 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { IdeaStore } from '@/lib/store';
+import { getIdeaById, updateIdea, deleteIdea as deleteIdeaAction } from '@/app/actions/ideas';
 import { sanitizeString } from '@/lib/security';
-import type { Idea, IdeaStage } from '@/types';
+import type { IdeaStage } from '@/types';
 import { ArrowLeft, Save, Eye, Trash2 } from 'lucide-react';
 import styles from '../../../submit.module.css';
 
@@ -23,7 +23,7 @@ export default function EditIdeaPage() {
   const { id } = useParams<{ id: string }>();
   const { userId, role, isLoading } = useAuth();
   const router = useRouter();
-  const [idea, setIdea] = useState<Idea | null>(null);
+  const [idea, setIdea] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -45,43 +45,47 @@ export default function EditIdeaPage() {
 
   useEffect(() => {
     if (!isLoading && !userId) { router.replace('/login'); return; }
-    const i = IdeaStore.getById(id);
-    if (!i) { router.replace('/dashboard'); return; }
-    if (i.authorId !== userId && role !== 'admin') { router.replace('/dashboard'); return; }
-    setIdea(i);
-    setTitle(i.title); setSummary(i.summary); setProblem(i.problem);
-    setSolution(i.solution); setTargetUsers(i.targetUsers); setImpact(i.impact);
-    setFeasibility(i.feasibility); setNovelty(i.novelty); setDomain(i.domain);
-    setStage(i.stage); setRisks(i.risks ?? ''); setRoadmap(i.roadmap ?? '');
-    setNeededSkills(i.neededSkills.join(', ')); setTags(i.tags.join(', '));
-    setVisibility(i.visibility);
+    async function load() {
+      const i = await getIdeaById(id);
+      if (!i) { router.replace('/dashboard'); return; }
+      if (i.authorId !== userId && role !== 'admin') { router.replace('/dashboard'); return; }
+      setIdea(i);
+      setTitle(i.title); setSummary(i.summary); setProblem(i.problem);
+      setSolution(i.solution); setTargetUsers(i.targetAudience || ''); setImpact(i.impact);
+      setFeasibility(i.feasibility); setNovelty(i.novelty); setDomain(i.domain);
+      setStage(i.stage as IdeaStage); setRisks(i.risks ?? ''); setRoadmap(i.roadmap ?? '');
+      setNeededSkills((i.rolesNeeded || []).join(', ')); setTags((i.tags || []).join(', '));
+      setVisibility(i.visibility as any);
+    }
+    load();
   }, [id, userId, role, isLoading, router]);
 
   async function save() {
     if (!idea || !userId) return;
     setSaving(true);
-    const updated: Idea = {
-      ...idea,
+    const versionHistory = Array.isArray(idea.versionHistory) ? idea.versionHistory : [];
+    const updated = {
       title: sanitizeString(title), summary: sanitizeString(summary),
       problem: sanitizeString(problem), solution: sanitizeString(solution),
-      targetUsers: sanitizeString(targetUsers), impact: sanitizeString(impact),
+      description: sanitizeString(problem) + '\n\n' + sanitizeString(solution),
+      targetAudience: sanitizeString(targetUsers), impact: sanitizeString(impact),
       feasibility: sanitizeString(feasibility), novelty: sanitizeString(novelty),
       domain: sanitizeString(domain), stage, risks: sanitizeString(risks),
       roadmap: sanitizeString(roadmap),
-      neededSkills: neededSkills.split(',').map(s => sanitizeString(s.trim())).filter(Boolean),
+      rolesNeeded: neededSkills.split(',').map(s => sanitizeString(s.trim())).filter(Boolean),
+      seekingTeam: neededSkills.length > 0,
       tags: tags.split(',').map(t => sanitizeString(t.trim())).filter(Boolean),
-      visibility, version: idea.version + 1,
-      versionHistory: [...idea.versionHistory, { version: idea.version + 1, savedAt: new Date().toISOString(), summary: 'Updated' }],
-      updatedAt: new Date().toISOString(),
+      visibility, version: (idea.version || 1) + 1,
+      versionHistory: [...versionHistory, { version: (idea.version || 1) + 1, savedAt: new Date().toISOString(), summary: 'Updated' }],
     };
-    IdeaStore.save(updated);
+    await updateIdea(id, updated);
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   }
 
-  function deleteIdea() {
+  async function deleteIdea() {
     if (!idea || !confirm('Delete this idea permanently?')) return;
-    IdeaStore.delete(idea.id);
+    await deleteIdeaAction(idea.id);
     router.replace('/dashboard');
   }
 

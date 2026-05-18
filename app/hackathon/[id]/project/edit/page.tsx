@@ -5,12 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  HackathonStore, 
-  HackathonTeamStore, 
-  HackathonParticipantStore, 
-  HackathonProjectStore
-} from '@/lib/hackathon-store';
+import { getHackathonById, getParticipantsByHackathon, getTeamsByHackathon, getProjectsByHackathon } from '@/app/actions/hackathon';
 import type { Hackathon, HackathonTeam, HackathonProject } from '@/types';
 import HackathonProjectForm from '@/components/hackathon/HackathonProjectForm';
 import { ChevronLeft } from 'lucide-react';
@@ -28,28 +23,34 @@ export default function EditHackathonProjectPage({ params }: { params: Promise<{
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!userId) { router.replace('/login'); return; }
+    async function loadData() {
+      if (isLoading) return;
+      if (!userId) { router.replace('/login'); return; }
 
-    const h = HackathonStore.getById(id);
-    if (!h) { router.replace('/explore'); return; }
-    setHackathon(h);
+      const h = await getHackathonById(id);
+      if (!h) { router.replace('/explore'); return; }
+      setHackathon(h as unknown as Hackathon);
 
-    const participant = HackathonParticipantStore.getByHackathon(id).find(p => p.userId === userId);
-    if (!participant) { router.replace(`/hackathon/${id}`); return; }
+      const participants = await getParticipantsByHackathon(id);
+      const participant = participants.find(p => p.userId === userId);
+      if (!participant) { router.replace(`/hackathon/${id}`); return; }
 
-    const t = HackathonTeamStore.getById(participant.teamId);
-    if (!t) { router.replace(`/hackathon/${id}`); return; }
-    setTeam(t);
+      const teams = await getTeamsByHackathon(id);
+      const t = teams.find(team => team.id === participant.teamId);
+      if (!t) { router.replace(`/hackathon/${id}`); return; }
+      setTeam(t as unknown as HackathonTeam);
 
-    const existing = HackathonProjectStore.getByTeam(t.id);
-    if (!existing) {
-      router.replace(`/hackathon/${id}/project/new`);
-      return;
+      const projs = await getProjectsByHackathon(id);
+      const existing = projs.find(p => p.teamId === t.id);
+      if (!existing) {
+        router.replace(`/hackathon/${id}/project/new`);
+        return;
+      }
+      setProject(existing as unknown as HackathonProject);
+
+      setLoading(false);
     }
-    setProject(existing);
-
-    setLoading(false);
+    loadData();
   }, [id, userId, isLoading, router]);
 
   if (loading || !hackathon || !team || !project) return null;

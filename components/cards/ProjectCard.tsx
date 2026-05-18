@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Eye, Heart, Bookmark, GitFork, ExternalLink, Users, Cpu } from 'lucide-react';
 import type { Project } from '@/types';
-import { StudentStore } from '@/lib/store';
+import { useState, useEffect } from 'react';
 import styles from './ProjectCard.module.css';
 
 interface Props {
@@ -12,7 +12,16 @@ interface Props {
 }
 
 export default function ProjectCard({ project, onLike, onBookmark, currentUserId }: Props) {
-  const author   = StudentStore.getById(project.authorId);
+  const [author, setAuthor] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+      const { getStudentProfileById } = require('@/app/actions/users');
+      setAuthor(await getStudentProfileById(project.authorId));
+    }
+    load();
+  }, [project.authorId]);
+  
   const liked    = currentUserId ? project.likes.includes(currentUserId)     : false;
   const bookmarked = currentUserId ? project.bookmarks.includes(currentUserId) : false;
 

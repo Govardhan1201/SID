@@ -3,7 +3,7 @@ import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { StudentStore, RecruiterStore } from '@/lib/store';
+import { updateStudentProfile, updateRecruiterProfile } from '@/app/actions/users';
 import { sanitizeString } from '@/lib/security';
 import type { StudentProfile, RecruiterProfile } from '@/types';
 import { Layers, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -69,7 +69,7 @@ function OnboardingForm() {
         followers: [], following: [], bookmarks: [],
         profileViews: 0, isProfileComplete: true, agreeToTerms: true,
       };
-      StudentStore.save(profile);
+      await updateStudentProfile(uid, profile);
     } else if (role === 'recruiter') {
       const profile: RecruiterProfile = {
         userId: uid,
@@ -84,7 +84,7 @@ function OnboardingForm() {
         linkedin: '',
         savedCandidates: [], shortlisted: [], contactedStudents: [],
       };
-      RecruiterStore.save(profile);
+      await updateRecruiterProfile(uid, profile);
     }
     refreshProfile();
     setSaving(false);

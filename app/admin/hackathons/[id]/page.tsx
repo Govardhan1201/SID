@@ -15,8 +15,8 @@ import {
   deleteHackathonAnnouncement,
   deleteHackathon
 } from '@/app/actions/hackathon';
-// Fallback for standings if needed locally, though standings should ideally also migrate.
 import { HackathonStandingsStore } from '@/lib/hackathon-store';
+import { getUserEmailsByIds } from '@/app/actions/users';
 import type { 
   Hackathon, 
   HackathonTeam, 
@@ -105,17 +105,11 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
     }
   }
 
-  function downloadAllCredentials() {
-    // Re-download credentials for ALL teams
-    const userEmails = new Map<string, string>();
-    const { UserStore } = require('@/lib/store');
-    
-    for (const team of teams) {
-      for (const uid of team.memberIds) {
-        const u = UserStore.getById(uid);
-        if (u) userEmails.set(uid, u.email);
-      }
-    }
+  async function downloadAllCredentials() {
+    // Collect all member IDs across all teams, then fetch their emails via server action
+    const allMemberIds = Array.from(new Set(teams.flatMap(t => t.memberIds)));
+    const emailMap = await getUserEmailsByIds(allMemberIds);
+    const userEmails = new Map<string, string>(Object.entries(emailMap));
     if (hackathon) {
       triggerCredentialsDownload(hackathon, teams, participants, userEmails);
     }

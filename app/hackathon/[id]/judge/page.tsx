@@ -2,7 +2,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { HackathonStore, HackathonProjectStore, HackathonTeamStore } from '@/lib/hackathon-store';
+import { getHackathonById, getProjectsByHackathon, getTeamsByHackathon } from '@/app/actions/hackathon';
 import { verifyPassword } from '@/lib/security';
 import type { Hackathon, HackathonProject, HackathonTeam } from '@/types';
 import TrackBadge from '@/components/hackathon/TrackBadge';
@@ -25,21 +25,24 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const h = HackathonStore.getById(id);
-    if (!h) { router.replace('/'); return; }
-    setHackathon(h);
+    async function init() {
+      const h = await getHackathonById(id);
+      if (!h) { router.replace('/'); return; }
+      setHackathon(h as unknown as Hackathon);
 
-    // Check if already authenticated in this session
-    const token = sessionStorage.getItem(`judge_token_${id}`);
-    if (token === h.judgeToken) {
-      loadData();
-      setAuthenticated(true);
+      // Check if already authenticated in this session
+      const token = sessionStorage.getItem(`judge_token_${id}`);
+      if (token === h.judgeToken) {
+        await loadData();
+        setAuthenticated(true);
+      }
     }
+    init();
   }, [id, router]);
 
-  function loadData() {
-    setProjects(HackathonProjectStore.getByHackathon(id));
-    setTeams(HackathonTeamStore.getByHackathon(id));
+  async function loadData() {
+    setProjects(await getProjectsByHackathon(id) as unknown as HackathonProject[]);
+    setTeams(await getTeamsByHackathon(id) as unknown as HackathonTeam[]);
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -51,7 +54,7 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
     
     if (isValid) {
       sessionStorage.setItem(`judge_token_${id}`, hackathon.judgeToken);
-      loadData();
+      await loadData();
       setAuthenticated(true);
     } else {
       setError('Invalid password');

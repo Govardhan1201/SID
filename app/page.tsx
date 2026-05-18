@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { StudentStore, ProjectStore, IdeaStore } from '@/lib/store';
+import { getAllStudentProfiles } from '@/app/actions/users';
+import { getVisibleProjects } from '@/app/actions/projects';
+import { getVisibleIdeas } from '@/app/actions/ideas';
 import {
   Layers, ArrowRight, Terminal, Code2, Users, Zap,
   GitBranch, Shield, Search, ChevronRight, Star
@@ -63,11 +65,19 @@ export default function LandingPage() {
       setTimeout(() => setVisibleLines(i + 1), line.delay);
     });
     // Load real platform stats
-    setStats({
-      students: StudentStore.getAll().length,
-      projects: ProjectStore.getPublic().length,
-      ideas:    IdeaStore.getPublic().length,
-    });
+    async function loadStats() {
+      const [students, projects, ideas] = await Promise.all([
+        getAllStudentProfiles(),
+        getVisibleProjects('public'),
+        getVisibleIdeas('public')
+      ]);
+      setStats({
+        students: students.length,
+        projects: projects.length,
+        ideas: ideas.length,
+      });
+    }
+    loadStats();
   }, []);
 
   return (

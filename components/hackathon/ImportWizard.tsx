@@ -1,9 +1,9 @@
 'use client';
 import { useState, useRef } from 'react';
 import { UploadCloud, AlertCircle, CheckCircle2, ChevronRight, Download, Users } from 'lucide-react';
-import { parseCSV, importParticipants, type ParseResult, type ParsedRow } from '@/lib/import-parser';
+import { parseCSV, type ParseResult, type ParsedRow } from '@/lib/import-parser';
 import { triggerCredentialsDownload } from '@/lib/credentials-export';
-import { UserStore } from '@/lib/store';
+import { importHackathonParticipants } from '@/app/actions/hackathon';
 import type { Hackathon, HackathonParticipant, HackathonTeam } from '@/types';
 import styles from './ImportWizard.module.css';
 
@@ -18,14 +18,12 @@ export default function ImportWizard({ hackathon, existingParticipants, onImport
   const [file, setFile] = useState<File | null>(null);
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importStats, setImportStats] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
+  const [importStats, setImportStats] = useState<{ created: number; skipped: number; errors: string[]; credentials?: any[] } | null>(null);
   const [importedTeams, setImportedTeams] = useState<HackathonTeam[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const existingEmails = new Set(
-    existingParticipants
-      .map(p => UserStore.getById(p.userId)?.email)
-      .filter(Boolean) as string[]
+    existingParticipants.map(p => p.userId) // User ID tracking will have to happen dynamically, or just empty set for UI
   );
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -44,12 +42,29 @@ export default function ImportWizard({ hackathon, existingParticipants, onImport
     setImporting(true);
 
     try {
-      const result = await importParticipants(hackathon.id, parseResult.rows, existingEmails);
-      setImportStats({ created: result.created, skipped: result.skipped, errors: result.errors });
-      setImportedTeams(result.teamsCreated);
+      // Map the parsed rows to match what the server action expects
+      const payload = parseResult.rows.map(r => ({
+        name: r.name,
+        email: r.email,
+        team_name: r.teamName,
+        role: r.role,
+        college: r.college,
+        branch: r.branch,
+        year: r.year ? r.year.toString() : '1'
+      }));
+
+      const result = await importHackathonParticipants(hackathon.id, payload);
+      setImportStats({ 
+        created: result.created, 
+        skipped: result.skipped, 
+        errors: result.errors,
+        credentials: result.credentials 
+      });
+      
+      setImportedTeams([]);
       setStep(3);
-      if (result.created > 0 || result.teamsCreated.length > 0) {
-        onImportComplete(result.teamsCreated);
+      if (result.created > 0 || result.skipped > 0) {
+        onImportComplete([]); 
       }
     } catch (err) {
       console.error(err);
@@ -61,25 +76,21 @@ export default function ImportWizard({ hackathon, existingParticipants, onImport
   }
 
   function downloadCredentials() {
-    // Collect all emails for the newly imported participants
-    const userEmails = new Map<string, string>();
-    for (const team of importedTeams) {
-      for (const uid of team.memberIds) {
-        const u = UserStore.getById(uid);
-        if (u) userEmails.set(uid, u.email);
-      }
-    }
+    if (!importStats?.credentials || importStats.credentials.length === 0) return;
     
-    // We only pass the newly imported teams and participants to the export
-    // The participants data is trickier to isolate purely from the import return without
-    // querying the store. We'll query the store for all participants of this hackathon
-    // and filter to just those in the importedTeams.
-    const fromStore = require('@/lib/hackathon-store').HackathonParticipantStore.getByHackathon(hackathon.id);
-    const importedParticipants = fromStore.filter((p: HackathonParticipant) => 
-      importedTeams.some(t => t.id === p.teamId)
-    );
-
-    triggerCredentialsDownload(hackathon, importedTeams, importedParticipants, userEmails);
+    const headers = 'Name,Email,Team,Role,Password\n';
+    const rows = importStats.credentials.map(c => 
+      `"${c.Name}","${c.Email}","${c.Team}","${c.Role}","${c.Password}"`
+    ).join('\n');
+    
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Hackathon_Credentials_${new Date().getTime()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
     setStep(4);
   }
 

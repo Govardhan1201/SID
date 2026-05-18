@@ -5,9 +5,9 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { IdeaStore } from '@/lib/store';
-import { generateId, sanitizeString } from '@/lib/security';
-import type { Idea, IdeaStage } from '@/types';
+import { createIdea } from '@/app/actions/ideas';
+import { sanitizeString } from '@/lib/security';
+import type { IdeaStage } from '@/types';
 import { ArrowLeft, ArrowRight, Save, Eye } from 'lucide-react';
 import styles from '../../submit.module.css';
 
@@ -54,27 +54,28 @@ export default function NewIdeaPage() {
   async function save(status: 'draft' | 'published') {
     if (!userId || !studentProfile) return;
     setSaving(true);
-    const idea: Idea = {
-      id: generateId(), authorId: userId,
+    const ideaData = {
+      authorId: userId,
       title: sanitizeString(title), summary: sanitizeString(summary),
       problem: sanitizeString(problem), solution: sanitizeString(solution),
-      targetUsers: sanitizeString(targetUsers), impact: sanitizeString(impact),
+      description: sanitizeString(problem) + '\n\n' + sanitizeString(solution),
+      targetAudience: sanitizeString(targetUsers), impact: sanitizeString(impact),
       feasibility: sanitizeString(feasibility), novelty: sanitizeString(novelty),
       category: domain, domain: sanitizeString(domain),
-      sdgAlignment: sdg,
+      sdgMapping: sdg,
       neededResources: neededResources.split(',').map(s => sanitizeString(s.trim())).filter(Boolean),
-      neededSkills: neededSkills.split(',').map(s => sanitizeString(s.trim())).filter(Boolean),
+      rolesNeeded: neededSkills.split(',').map(s => sanitizeString(s.trim())).filter(Boolean),
+      seekingTeam: neededSkills.length > 0,
       stage, risks: sanitizeString(risks), roadmap: sanitizeString(roadmap),
       visibility, status, moderationStatus: 'pending', isFeatured: false,
       views: 0, likes: [], bookmarks: [], comments: [],
       tags: tags.split(',').map(t => sanitizeString(t.trim())).filter(Boolean),
       version: 1,
       versionHistory: [{ version: 1, savedAt: new Date().toISOString(), summary: status === 'draft' ? 'Draft saved' : 'Initial submission' }],
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
-    IdeaStore.save(idea);
+    const savedIdea = await createIdea(ideaData);
     setSaving(false);
-    router.push(`/idea/${idea.id}`);
+    router.push(`/idea/${savedIdea.id}`);
   }
 
   if (isLoading || !userId) return null;

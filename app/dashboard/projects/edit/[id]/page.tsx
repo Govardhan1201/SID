@@ -5,9 +5,8 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { ProjectStore } from '@/lib/store';
+import { getProjectById, updateProject, deleteProject as deleteProjectAction } from '@/app/actions/projects';
 import { sanitizeString } from '@/lib/security';
-import type { Project } from '@/types';
 import { ArrowLeft, Save, Eye, Trash2 } from 'lucide-react';
 import styles from '../../../submit.module.css';
 
@@ -18,7 +17,7 @@ export default function EditProjectPage() {
   const { id } = useParams<{ id: string }>();
   const { userId, role, isLoading } = useAuth();
   const router = useRouter();
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -43,23 +42,26 @@ export default function EditProjectPage() {
 
   useEffect(() => {
     if (!isLoading && !userId) { router.replace('/login'); return; }
-    const p = ProjectStore.getById(id);
-    if (!p) { router.replace('/dashboard'); return; }
-    if (p.authorId !== userId && role !== 'admin') { router.replace('/dashboard'); return; }
-    setProject(p);
-    setTitle(p.title); setTagline(p.tagline); setSummary(p.summary);
-    setProblem(p.problemStatement); setSolution(p.solution); setImpact(p.impact);
-    setTechStack(p.techStack.join(', ')); setDomain(p.domain); setBuildStatus(p.buildStatus);
-    setGithub(p.githubLink); setLiveDemo(p.liveDemo ?? ''); setDemoVideo(p.demoVideo ?? '');
-    setChallenges(p.challengesFaced ?? ''); setLearnings(p.learnings ?? ''); setFuture(p.futureScope ?? '');
-    setTags(p.tags.join(', ')); setVisibility(p.visibility); setStatus(p.status as 'draft' | 'published');
+    async function load() {
+      const p = await getProjectById(id);
+      if (!p) { router.replace('/dashboard'); return; }
+      if (p.authorId !== userId && role !== 'admin') { router.replace('/dashboard'); return; }
+      setProject(p as any);
+      setTitle(p.title); setTagline(p.tagline || ''); setSummary(p.summary || '');
+      setProblem(p.problemStatement || ''); setSolution(p.solution || ''); setImpact(p.impact || '');
+      setTechStack((p.techStack || []).join(', ')); setDomain(p.domain || ''); setBuildStatus(p.buildStatus || '');
+      setGithub(p.githubLink || ''); setLiveDemo(p.liveDemo ?? ''); setDemoVideo(p.demoVideo ?? '');
+      setChallenges(p.challengesFaced ?? ''); setLearnings(p.learnings ?? ''); setFuture(p.futureScope ?? '');
+      setTags((p.tags || []).join(', ')); setVisibility(p.visibility as any); setStatus(p.status as 'draft' | 'published');
+    }
+    load();
   }, [id, userId, role, isLoading, router]);
 
   async function save(newStatus?: 'draft' | 'published') {
     if (!project || !userId) return;
     setSaving(true);
-    const updated: Project = {
-      ...project,
+    const versionHistory = Array.isArray((project as any).versionHistory) ? (project as any).versionHistory : [];
+    const updated = {
       title: sanitizeString(title), tagline: sanitizeString(tagline),
       summary: sanitizeString(summary), problemStatement: sanitizeString(problem),
       solution: sanitizeString(solution), impact: sanitizeString(impact),
@@ -70,18 +72,17 @@ export default function EditProjectPage() {
       learnings: sanitizeString(learnings), futureScope: sanitizeString(futureScope),
       tags: tags.split(',').map(t => sanitizeString(t.trim())).filter(Boolean),
       visibility, status: newStatus ?? status,
-      version: project.version + 1,
-      versionHistory: [...project.versionHistory, { version: project.version + 1, savedAt: new Date().toISOString(), summary: 'Updated' }],
-      updatedAt: new Date().toISOString(),
+      version: ((project as any).version || 1) + 1,
+      versionHistory: [...versionHistory, { version: ((project as any).version || 1) + 1, savedAt: new Date().toISOString(), summary: 'Updated' }],
     };
-    ProjectStore.save(updated);
+    await updateProject(id, updated);
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   }
 
-  function deleteProject() {
+  async function deleteProject() {
     if (!project || !confirm('Delete this project permanently?')) return;
-    ProjectStore.delete(project.id);
+    await deleteProjectAction(project.id);
     router.replace('/dashboard');
   }
 
