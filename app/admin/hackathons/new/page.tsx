@@ -61,10 +61,11 @@ export default function NewHackathonPage() {
         name:             name.trim(),
         tagline:          tagline.trim(),
         description:      description.trim(),
-        banner:           '',
+        banner:           'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80',
         tracks,
         deadline,
         status,
+        announcements:    [],
         judgeToken:       generateJudgeToken(),
         judgePasswordHash,
         createdBy:        '',  // filled by auth context in real app

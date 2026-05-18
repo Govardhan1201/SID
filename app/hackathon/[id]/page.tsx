@@ -20,7 +20,7 @@ import type {
 } from '@/types';
 import DeadlineCountdown from '@/components/hackathon/DeadlineCountdown';
 import TrackBadge from '@/components/hackathon/TrackBadge';
-import { Trophy, Clock, Users, ArrowRight, CheckCircle2, ChevronRight, AlertCircle, Medal } from 'lucide-react';
+import { Trophy, Clock, Users, ArrowRight, CheckCircle2, ChevronRight, AlertCircle, Medal, Megaphone } from 'lucide-react';
 import styles from './hackathon.module.css';
 
 export default function HackathonPublicPage({ params }: { params: Promise<{ id: string }> }) {
@@ -139,6 +139,26 @@ export default function HackathonPublicPage({ params }: { params: Promise<{ id: 
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Announcements */}
+              {hackathon.announcements && hackathon.announcements.length > 0 && (
+                <section className={styles.section} style={{ marginBottom: 'var(--space-8)' }}>
+                  <h2 className={styles.sectionTitle} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                    <Megaphone size={20} color="var(--primary)" /> Live Announcements
+                  </h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                    {hackathon.announcements.map(ann => (
+                      <div key={ann.id} style={{ padding: 'var(--space-4)', borderLeft: `4px solid var(--${ann.type === 'urgent' ? 'danger' : ann.type === 'info' ? 'primary' : ann.type})`, background: 'var(--surface-1)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-1)' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: `var(--${ann.type === 'urgent' ? 'danger' : ann.type === 'info' ? 'primary' : ann.type})`, textTransform: 'uppercase' }}>{ann.type}</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text-4)' }}>{new Date(ann.timestamp).toLocaleString()}</span>
+                        </div>
+                        <p style={{ fontSize: 'var(--text-md)', color: 'var(--text-1)' }}>{ann.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               )}
 
               {/* Description */}

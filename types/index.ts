@@ -249,6 +249,13 @@ export interface HackathonTrack {
   openInnovation: boolean; // true = teams define their own problem
 }
 
+export interface HackathonAnnouncement {
+  id: string;
+  text: string;
+  type: 'info' | 'warning' | 'success' | 'urgent';
+  timestamp: string;
+}
+
 export interface Hackathon {
   id: string;
   name: string;
@@ -256,6 +263,7 @@ export interface Hackathon {
   description: string;
   banner: string;
   tracks: HackathonTrack[];
+  announcements: HackathonAnnouncement[];
   deadline: string;         // ISO date-time string, editable
   status: HackathonStatus;
   judgeToken: string;       // UUID — used in external judge link

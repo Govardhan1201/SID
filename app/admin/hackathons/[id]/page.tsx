@@ -23,13 +23,15 @@ import ImportWizard from '@/components/hackathon/ImportWizard';
 import StandingsTable from '@/components/hackathon/StandingsTable';
 import DeadlineCountdown from '@/components/hackathon/DeadlineCountdown';
 import { triggerCredentialsDownload } from '@/lib/credentials-export';
+import { downloadProjectSubmissionsCsv } from '@/lib/csv-export';
+import { generateId } from '@/lib/security';
 import { 
   Settings, Users, Trophy, Layers, Copy, CheckCircle, ExternalLink,
-  ChevronLeft, LayoutDashboard, Calendar, Download
+  ChevronLeft, LayoutDashboard, Calendar, Download, Megaphone, Trash2, Plus
 } from 'lucide-react';
 import styles from './manage.module.css';
 
-type Tab = 'overview' | 'import' | 'standings' | 'settings';
+type Tab = 'overview' | 'import' | 'announcements' | 'standings' | 'settings';
 
 export default function ManageHackathonPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -44,6 +46,10 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
   const [projects, setProjects] = useState<HackathonProject[]>([]);
   const [standings, setStandings] = useState<HackathonStandings | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Announcement state
+  const [annText, setAnnText] = useState('');
+  const [annType, setAnnType] = useState<'info' | 'warning' | 'success' | 'urgent'>('info');
 
   useEffect(() => {
     if (!isLoading && role !== 'admin') router.replace('/dashboard');
@@ -106,6 +112,39 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
     }
   }
 
+  function handleExportSubmissions() {
+    if (hackathon && projects.length > 0) {
+      downloadProjectSubmissionsCsv(hackathon, projects, teams);
+    }
+  }
+
+  function handleAddAnnouncement() {
+    if (!hackathon || !annText.trim()) return;
+    const newAnn = {
+      id: generateId(),
+      text: annText.trim(),
+      type: annType,
+      timestamp: new Date().toISOString()
+    };
+    const updated = {
+      ...hackathon,
+      announcements: [newAnn, ...(hackathon.announcements || [])]
+    };
+    HackathonStore.save(updated);
+    setHackathon(updated);
+    setAnnText('');
+  }
+
+  function handleDeleteAnnouncement(annId: string) {
+    if (!hackathon) return;
+    const updated = {
+      ...hackathon,
+      announcements: (hackathon.announcements || []).filter(a => a.id !== annId)
+    };
+    HackathonStore.save(updated);
+    setHackathon(updated);
+  }
+
   const isPastDeadline = new Date(hackathon.deadline) < new Date();
 
   return (
@@ -156,6 +195,7 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
               {[
                 { id: 'overview', icon: <LayoutDashboard size={16} />, label: 'Overview' },
                 { id: 'import', icon: <Users size={16} />, label: 'Participants' },
+                { id: 'announcements', icon: <Megaphone size={16} />, label: 'Announcements' },
                 { id: 'standings', icon: <Trophy size={16} />, label: 'Standings' },
                 { id: 'settings', icon: <Settings size={16} />, label: 'Settings' },
               ].map(t => (
@@ -189,6 +229,14 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
                       <p className="stat-card__value">{projects.length}</p>
                     </div>
                   </div>
+
+                  {projects.length > 0 && (
+                    <div style={{ marginBottom: 'var(--space-6)', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button className="btn btn-secondary" onClick={handleExportSubmissions}>
+                        <Download size={15} /> Export Submissions CSV
+                      </button>
+                    </div>
+                  )}
 
                   <div className={styles.section}>
                     <h2 className={styles.sectionTitle}>Judge Access</h2>
@@ -277,6 +325,72 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
                       </div>
                     </div>
                   )}
+                </>
+              )}
+
+              {/* ── ANNOUNCEMENTS ── */}
+              {tab === 'announcements' && (
+                <>
+                  <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>Live Announcements</h2>
+                  </div>
+                  
+                  <div className="card" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
+                    <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>Post New Announcement</h3>
+                    <div className="field">
+                      <label className="label">Message</label>
+                      <textarea 
+                        className="textarea" 
+                        rows={3} 
+                        placeholder="Type your announcement here..."
+                        value={annText}
+                        onChange={e => setAnnText(e.target.value)}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'center', marginTop: 'var(--space-4)' }}>
+                      <select 
+                        className="select" 
+                        value={annType} 
+                        onChange={e => setAnnType(e.target.value as any)}
+                        style={{ width: '150px' }}
+                      >
+                        <option value="info">Info</option>
+                        <option value="success">Success</option>
+                        <option value="warning">Warning</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                      <button className="btn btn-primary" onClick={handleAddAnnouncement} disabled={!annText.trim()}>
+                        <Plus size={16} /> Post Announcement
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.section}>
+                    <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>Past Announcements</h3>
+                    {(!hackathon.announcements || hackathon.announcements.length === 0) ? (
+                      <div className="empty-state" style={{ padding: 'var(--space-6)' }}>
+                        <Megaphone size={32} style={{ color: 'var(--text-4)' }} />
+                        <p style={{ color: 'var(--text-3)' }}>No announcements posted yet.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                        {hackathon.announcements.map(ann => (
+                          <div key={ann.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-4)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--surface-1)' }}>
+                            <div>
+                              <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
+                                <span className={`badge badge-${ann.type === 'urgent' ? 'danger' : ann.type === 'info' ? 'primary' : ann.type}`}>{ann.type}</span>
+                                <span style={{ fontSize: '12px', color: 'var(--text-4)' }}>{new Date(ann.timestamp).toLocaleString()}</span>
+                              </div>
+                              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-1)' }}>{ann.text}</p>
+                            </div>
+                            <button className="btn btn-ghost" style={{ color: 'var(--danger)', padding: 'var(--space-2)' }} onClick={() => handleDeleteAnnouncement(ann.id)}>
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
 
