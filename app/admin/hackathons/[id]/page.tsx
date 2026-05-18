@@ -6,12 +6,17 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { 
-  HackathonStore, 
-  HackathonTeamStore, 
-  HackathonParticipantStore, 
-  HackathonProjectStore,
-  HackathonStandingsStore
-} from '@/lib/hackathon-store';
+  getHackathonById, 
+  getTeamsByHackathon, 
+  getParticipantsByHackathon, 
+  getProjectsByHackathon,
+  updateHackathonStatus,
+  addHackathonAnnouncement,
+  deleteHackathonAnnouncement,
+  deleteHackathon
+} from '@/app/actions/hackathon';
+// Fallback for standings if needed locally, though standings should ideally also migrate.
+import { HackathonStandingsStore } from '@/lib/hackathon-store';
 import type { 
   Hackathon, 
   HackathonTeam, 
@@ -56,14 +61,19 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
   }, [role, isLoading, router]);
 
   useEffect(() => {
-    const h = HackathonStore.getById(id);
-    if (!h) { router.replace('/admin/hackathons'); return; }
-    
-    setHackathon(h);
-    setTeams(HackathonTeamStore.getByHackathon(id));
-    setParticipants(HackathonParticipantStore.getByHackathon(id));
-    setProjects(HackathonProjectStore.getByHackathon(id));
-    setStandings(HackathonStandingsStore.getByHackathon(id));
+    async function loadData() {
+      const h = await getHackathonById(id);
+      if (!h) { router.replace('/admin/hackathons'); return; }
+      
+      setHackathon(h as unknown as Hackathon);
+      setTeams((await getTeamsByHackathon(id)) as unknown as HackathonTeam[]);
+      setParticipants((await getParticipantsByHackathon(id)) as unknown as HackathonParticipant[]);
+      setProjects((await getProjectsByHackathon(id)) as unknown as HackathonProject[]);
+      
+      // Standings are still on localStorage for this intermediate phase
+      setStandings(HackathonStandingsStore.getByHackathon(id));
+    }
+    loadData();
   }, [id, router]);
 
   if (isLoading || role !== 'admin' || !hackathon) return null;
@@ -75,17 +85,16 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleStatusChange(newStatus: Hackathon['status']) {
+  async function handleStatusChange(newStatus: Hackathon['status']) {
     if (!hackathon) return;
-    const updated = { ...hackathon, status: newStatus, updatedAt: new Date().toISOString() };
-    HackathonStore.save(updated);
-    setHackathon(updated);
+    await updateHackathonStatus(hackathon.id, newStatus);
+    setHackathon({ ...hackathon, status: newStatus, updatedAt: new Date().toISOString() });
   }
 
-  function handleImportComplete(newTeams: HackathonTeam[]) {
+  async function handleImportComplete(newTeams: HackathonTeam[]) {
     // Refresh data
-    setTeams(HackathonTeamStore.getByHackathon(id));
-    setParticipants(HackathonParticipantStore.getByHackathon(id));
+    setTeams((await getTeamsByHackathon(id)) as unknown as HackathonTeam[]);
+    setParticipants((await getParticipantsByHackathon(id)) as unknown as HackathonParticipant[]);
   }
 
   function handleSaveStandings(newStandings: HackathonStandings) {
@@ -118,31 +127,23 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
     }
   }
 
-  function handleAddAnnouncement() {
+  async function handleAddAnnouncement() {
     if (!hackathon || !annText.trim()) return;
-    const newAnn = {
-      id: generateId(),
-      text: annText.trim(),
-      type: annType,
-      timestamp: new Date().toISOString()
-    };
-    const updated = {
+    const newAnn = await addHackathonAnnouncement(hackathon.id, annText.trim(), annType);
+    setHackathon({
       ...hackathon,
-      announcements: [newAnn, ...(hackathon.announcements || [])]
-    };
-    HackathonStore.save(updated);
-    setHackathon(updated);
+      announcements: [newAnn as unknown as any, ...(hackathon.announcements || [])]
+    });
     setAnnText('');
   }
 
-  function handleDeleteAnnouncement(annId: string) {
+  async function handleDeleteAnnouncement(annId: string) {
     if (!hackathon) return;
-    const updated = {
+    await deleteHackathonAnnouncement(annId);
+    setHackathon({
       ...hackathon,
       announcements: (hackathon.announcements || []).filter(a => a.id !== annId)
-    };
-    HackathonStore.save(updated);
-    setHackathon(updated);
+    });
   }
 
   const isPastDeadline = new Date(hackathon.deadline) < new Date();
@@ -449,9 +450,9 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
                     <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-3)', marginBottom: 'var(--space-4)' }}>
                       Deleting this hackathon will remove all associated teams and projects. Accounts created during import will remain.
                     </p>
-                    <button className="btn" style={{ background: 'var(--danger)', color: 'white', border: 'none' }} onClick={() => {
+                    <button className="btn" style={{ background: 'var(--danger)', color: 'white', border: 'none' }} onClick={async () => {
                       if (confirm('Are you sure you want to delete this hackathon? This action cannot be undone.')) {
-                        HackathonStore.delete(hackathon.id);
+                        await deleteHackathon(hackathon.id);
                         router.replace('/admin/hackathons');
                       }
                     }}>
