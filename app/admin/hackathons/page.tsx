@@ -97,7 +97,7 @@ export default function HackathonsPage() {
                       <div className={styles.cardMeta}>
                         <span className={styles.metaItem}>
                           <Layers size={12} />
-                          {h.tracks.length} track{h.tracks.length !== 1 ? 's' : ''}
+                          {(h.tracks?.length ?? 0)} track{(h.tracks?.length ?? 0) !== 1 ? 's' : ''}
                         </span>
                         <span className={styles.metaItem}>
                           <Calendar size={12} />

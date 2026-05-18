@@ -11,7 +11,7 @@ interface AuthContextValue {
   recruiterProfile: RecruiterProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
   logout: () => void;
   register: (email: string, password: string, role: 'student' | 'recruiter') => Promise<{ success: boolean; error?: string; userId?: string }>;
   refreshProfile: () => void;
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRole(result.role);
       await loadProfile(result.userId, result.role);
     }
-    return { success: result.success, error: result.error };
+    return { success: result.success, error: result.error, role: result.role };
   };
 
   const logout = async () => {

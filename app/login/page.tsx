@@ -34,11 +34,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Route based on role stored in session
-    const session = (() => { try { return JSON.parse(atob(sessionStorage.getItem('if_session') ?? '')); } catch { return null; } })();
-    const role = session?.userId
-      ? (() => { const u = JSON.parse(localStorage.getItem('if_users') ?? '[]').find((x: {id:string;role:string}) => x.id === session.userId); return u?.role; })()
-      : null;
+    const role = result.role;
 
     if (role === 'admin') router.replace('/admin');
     else if (role === 'recruiter') router.replace('/recruiter');
