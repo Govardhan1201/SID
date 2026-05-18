@@ -127,9 +127,9 @@ function ExploreContent() {
     let list = [...projects];
     if (query) list = list.filter(p => [p.title, p.tagline, p.summary, ...p.techStack, ...p.tags].some(f => f.toLowerCase().includes(query.toLowerCase())));
     if (domain !== 'All') list = list.filter(p => p.domain === domain || p.category === domain);
-    if (sort === 'popular')    list.sort((a, b) => b.views - a.views);
-    else if (sort === 'liked') list.sort((a, b) => b.likes.length - a.likes.length);
-    else if (sort === 'bookmarked') list.sort((a, b) => b.bookmarks.length - a.bookmarks.length);
+    if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
+    else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+    else if (sort === 'bookmarked') list.sort((a, b) => (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0));
     else list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return list;
   }
@@ -138,8 +138,8 @@ function ExploreContent() {
     let list = [...ideas];
     if (query) list = list.filter(i => [i.title, i.summary, ...i.tags].some(f => f.toLowerCase().includes(query.toLowerCase())));
     if (domain !== 'All') list = list.filter(i => i.domain === domain || i.category === domain);
-    if (sort === 'popular')    list.sort((a, b) => b.views - a.views);
-    else if (sort === 'liked') list.sort((a, b) => b.likes.length - a.likes.length);
+    if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
+    else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
     else list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return list;
   }
@@ -271,7 +271,7 @@ function ExploreContent() {
                       <img src={t.avatar} alt={t.name} className="avatar avatar-md" />
                       <div>
                         <div style={{ fontWeight: 700, color: 'var(--text-1)', fontSize: 'var(--text-sm)' }}>{t.name}</div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{t.members.length} members</div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{t.memberIds?.length || 0} members</div>
                       </div>
                       {t.isOpen && <span className="badge badge-success" style={{ marginLeft: 'auto' }}>Open</span>}
                     </div>

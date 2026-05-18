@@ -85,15 +85,15 @@ function DashboardContent() {
 
   if (isLoading || !studentProfile) return null;
 
-  const totalViews    = projects.reduce((s, p) => s + p.views, 0) + ideas.reduce((s, i) => s + i.views, 0);
-  const totalLikes    = projects.reduce((s, p) => s + p.likes.length, 0) + ideas.reduce((s, i) => s + i.likes.length, 0);
-  const totalBookmarks = projects.reduce((s, p) => s + p.bookmarks.length, 0);
+  const totalViews    = projects.reduce((s, p) => s + (p.views || 0), 0) + ideas.reduce((s, i) => s + (i.views || 0), 0);
+  const totalLikes    = projects.reduce((s, p) => s + (p.likes?.length || 0), 0) + ideas.reduce((s, i) => s + (i.likes?.length || 0), 0);
+  const totalBookmarks = projects.reduce((s, p) => s + (p.bookmarks?.length || 0), 0);
   const unread        = notifications.filter(n => !n.isRead).length;
 
   const completeness = [
     !!studentProfile.name, !!studentProfile.bio, !!studentProfile.college,
     !!studentProfile.github, !!studentProfile.linkedin,
-    studentProfile.skills.length > 0, studentProfile.domains.length > 0,
+    studentProfile.skills?.length > 0, studentProfile.domains?.length > 0,
     projects.length > 0,
   ];
   const completeCount = completeness.filter(Boolean).length;
@@ -202,7 +202,7 @@ function DashboardContent() {
                     <div className="stat-card"><p className="stat-card__label">Total views</p><p className="stat-card__value">{totalViews.toLocaleString()}</p></div>
                     <div className="stat-card"><p className="stat-card__label">Likes received</p><p className="stat-card__value">{totalLikes}</p></div>
                     <div className="stat-card"><p className="stat-card__label">Bookmarks</p><p className="stat-card__value">{totalBookmarks}</p></div>
-                    <div className="stat-card"><p className="stat-card__label">Followers</p><p className="stat-card__value">{studentProfile.followers.length}</p></div>
+                    <div className="stat-card"><p className="stat-card__label">Followers</p><p className="stat-card__value">{studentProfile.followers?.length || 0}</p></div>
                   </div>
 
                   {/* Recent submissions */}
@@ -220,7 +220,7 @@ function DashboardContent() {
                         </div>
                         <div className={styles.subStats}>
                           <span><Eye size={12} /> {p.views}</span>
-                          <span><Heart size={12} /> {p.likes.length}</span>
+                          <span><Heart size={12} /> {p.likes?.length || 0}</span>
                         </div>
                         <Link href={`/dashboard/projects/edit/${p.id}`} className="btn btn-ghost btn-sm">Edit</Link>
                       </div>
@@ -269,8 +269,8 @@ function DashboardContent() {
                         </div>
                         <div className={styles.subStats}>
                           <span><Eye size={12} /> {p.views}</span>
-                          <span><Heart size={12} /> {p.likes.length}</span>
-                          <span><Bookmark size={12} /> {p.bookmarks.length}</span>
+                          <span><Heart size={12} /> {p.likes?.length || 0}</span>
+                          <span><Bookmark size={12} /> {p.bookmarks?.length || 0}</span>
                         </div>
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                           <Link href={`/dashboard/projects/edit/${p.id}`} className="btn btn-secondary btn-sm">Edit</Link>
@@ -301,7 +301,7 @@ function DashboardContent() {
                         </div>
                         <div className={styles.subStats}>
                           <span><Eye size={12} /> {i.views}</span>
-                          <span><Heart size={12} /> {i.likes.length}</span>
+                          <span><Heart size={12} /> {i.likes?.length || 0}</span>
                         </div>
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                           <Link href={`/dashboard/ideas/edit/${i.id}`} className="btn btn-secondary btn-sm">Edit</Link>
