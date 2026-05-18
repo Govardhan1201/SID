@@ -1,10 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { getCurrentSession, signIn, signOut, signUp } from '@/lib/auth';
-import { StudentStore, RecruiterStore, UserStore } from '@/lib/store';
-import { seedDatabase, } from '@/lib/seed';
-import { isSeeded } from '@/lib/store';
+import { signInAction, signUpAction, signOutAction, getSessionAction, getProfileAction } from '@/app/actions/auth';
 import type { UserRole, StudentProfile, RecruiterProfile } from '@/types';
 
 interface AuthContextValue {
@@ -29,26 +26,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [recruiterProfile, setRecruiterProfile] = useState<RecruiterProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadProfile = useCallback((uid: string, r: UserRole) => {
-    if (r === 'student') {
-      setStudentProfile(StudentStore.getById(uid) ?? null);
-      setRecruiterProfile(null);
-    } else if (r === 'recruiter') {
-      setRecruiterProfile(RecruiterStore.getById(uid) ?? null);
-      setStudentProfile(null);
+  const loadProfile = useCallback(async (uid: string, r: UserRole) => {
+    try {
+      const profile = await getProfileAction(uid, r);
+      if (r === 'student') {
+        setStudentProfile(profile as StudentProfile | null);
+        setRecruiterProfile(null);
+      } else if (r === 'recruiter') {
+        setRecruiterProfile(profile as RecruiterProfile | null);
+        setStudentProfile(null);
+      }
+    } catch (e) {
+      console.error('Failed to load profile', e);
     }
   }, []);
 
   useEffect(() => {
     async function init() {
-      if (!isSeeded()) {
-        await seedDatabase();
-      }
-      const session = getCurrentSession();
+      const session = await getSessionAction();
       if (session) {
         setUserId(session.userId);
         setRole(session.role);
-        loadProfile(session.userId, session.role);
+        await loadProfile(session.userId, session.role);
       }
       setIsLoading(false);
     }
@@ -56,17 +55,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile]);
 
   const login = async (email: string, password: string) => {
-    const result = await signIn(email, password);
+    const result = await signInAction(email, password);
     if (result.success && result.userId && result.role) {
       setUserId(result.userId);
       setRole(result.role);
-      loadProfile(result.userId, result.role);
+      await loadProfile(result.userId, result.role);
     }
     return { success: result.success, error: result.error };
   };
 
-  const logout = () => {
-    signOut();
+  const logout = async () => {
+    await signOutAction();
     setUserId(null);
     setRole(null);
     setStudentProfile(null);
@@ -74,11 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, r: 'student' | 'recruiter') => {
-    const result = await signUp(email, password, r);
+    const result = await signUpAction(email, password, r);
     if (result.success && result.userId) {
       setUserId(result.userId);
       setRole(r);
-      loadProfile(result.userId, r);  // ← was missing: load profile immediately after signup
+      await loadProfile(result.userId, r);
     }
     return { success: result.success, error: result.error, userId: result.userId };
   };
