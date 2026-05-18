@@ -58,8 +58,8 @@ function ExploreContent() {
     if (!userId) return;
     const p = projects.find(x => x.id === id);
     if (!p) return;
-    const liked = p.likes.includes(userId);
-    const newLikes = liked ? p.likes.filter(x => x !== userId) : [...p.likes, userId];
+    const liked = p.likes?.includes(userId);
+    const newLikes = liked ? (p.likes || []).filter(x => x !== userId) : [...(p.likes || []), userId];
     
     setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, likes: newLikes } : proj));
     
@@ -75,8 +75,8 @@ function ExploreContent() {
     if (!userId) return;
     const p = projects.find(x => x.id === id);
     if (!p) return;
-    const bookmarked = p.bookmarks.includes(userId);
-    const newBookmarks = bookmarked ? p.bookmarks.filter(x => x !== userId) : [...p.bookmarks, userId];
+    const bookmarked = p.bookmarks?.includes(userId);
+    const newBookmarks = bookmarked ? (p.bookmarks || []).filter(x => x !== userId) : [...(p.bookmarks || []), userId];
     
     setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, bookmarks: newBookmarks } : proj));
     
@@ -92,8 +92,8 @@ function ExploreContent() {
     if (!userId) return;
     const i = ideas.find(x => x.id === id);
     if (!i) return;
-    const liked = i.likes.includes(userId);
-    const newLikes = liked ? i.likes.filter(x => x !== userId) : [...i.likes, userId];
+    const liked = i.likes?.includes(userId);
+    const newLikes = liked ? (i.likes || []).filter(x => x !== userId) : [...(i.likes || []), userId];
     
     setIdeas(prev => prev.map(idea => idea.id === id ? { ...idea, likes: newLikes } : idea));
     
@@ -109,8 +109,8 @@ function ExploreContent() {
     if (!userId) return;
     const i = ideas.find(x => x.id === id);
     if (!i) return;
-    const bookmarked = i.bookmarks.includes(userId);
-    const newBookmarks = bookmarked ? i.bookmarks.filter(x => x !== userId) : [...i.bookmarks, userId];
+    const bookmarked = i.bookmarks?.includes(userId);
+    const newBookmarks = bookmarked ? (i.bookmarks || []).filter(x => x !== userId) : [...(i.bookmarks || []), userId];
     
     setIdeas(prev => prev.map(idea => idea.id === id ? { ...idea, bookmarks: newBookmarks } : idea));
     
@@ -125,7 +125,7 @@ function ExploreContent() {
   // ── Filters ───────────────────────────────────────────────────────
   function filterProjects() {
     let list = [...projects];
-    if (query) list = list.filter(p => [p.title, p.tagline, p.summary, ...p.techStack, ...p.tags].some(f => f.toLowerCase().includes(query.toLowerCase())));
+    if (query) list = list.filter(p => [p.title, p.tagline, p.summary, ...(p.techStack || []), ...(p.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
     if (domain !== 'All') list = list.filter(p => p.domain === domain || p.category === domain);
     if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
     else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
@@ -136,7 +136,7 @@ function ExploreContent() {
 
   function filterIdeas() {
     let list = [...ideas];
-    if (query) list = list.filter(i => [i.title, i.summary, ...i.tags].some(f => f.toLowerCase().includes(query.toLowerCase())));
+    if (query) list = list.filter(i => [i.title, i.summary, ...(i.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
     if (domain !== 'All') list = list.filter(i => i.domain === domain || i.category === domain);
     if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
     else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
@@ -146,13 +146,13 @@ function ExploreContent() {
 
   function filterStudents() {
     let list = [...students];
-    if (query) list = list.filter(s => [s.name, s.college, s.branch, ...s.skills, ...s.domains].some(f => f.toLowerCase().includes(query.toLowerCase())));
+    if (query) list = list.filter(s => [s.name, s.college, s.branch, ...(s.skills || []), ...(s.domains || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
     return list;
   }
 
   function filterTeams() {
     let list = [...teams];
-    if (query) list = list.filter(t => [t.name, t.description, ...t.skills].some(f => f.toLowerCase().includes(query.toLowerCase())));
+    if (query) list = list.filter(t => [t.name, t.description, ...(t.skills || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
     return list;
   }
 

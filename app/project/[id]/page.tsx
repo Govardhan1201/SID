@@ -61,14 +61,14 @@ export default function ProjectDetailPage() {
 
   if (loading || !project) return null;
 
-  const liked = userId ? project.likes.includes(userId) : false;
-  const bookmarked = userId ? project.bookmarks.includes(userId) : false;
+  const liked = userId ? project.likes?.includes(userId) : false;
+  const bookmarked = userId ? project.bookmarks?.includes(userId) : false;
 
   async function toggleLike() {
     if (!userId || !project) return;
     const p = { ...project };
-    if (liked) p.likes = p.likes.filter(x => x !== userId);
-    else p.likes = [...p.likes, userId];
+    if (liked) p.likes = (p.likes || []).filter((x: string) => x !== userId);
+    else p.likes = [...(p.likes || []), userId];
     setProject(p);
     try {
       await updateProject(id, { likes: p.likes });
@@ -78,8 +78,8 @@ export default function ProjectDetailPage() {
   async function toggleBookmark() {
     if (!userId || !project) return;
     const p = { ...project };
-    if (bookmarked) p.bookmarks = p.bookmarks.filter(x => x !== userId);
-    else p.bookmarks = [...p.bookmarks, userId];
+    if (bookmarked) p.bookmarks = (p.bookmarks || []).filter((x: string) => x !== userId);
+    else p.bookmarks = [...(p.bookmarks || []), userId];
     setProject(p);
     try {
       await updateProject(id, { bookmarks: p.bookmarks });
@@ -94,7 +94,7 @@ export default function ProjectDetailPage() {
       likes: [], replies: [], isReported: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
-    const p = { ...project, comments: [...project.comments, c] };
+    const p = { ...project, comments: [...(project.comments || []), c] };
     setProject(p); setComment('');
     try {
       await updateProject(id, { comments: p.comments });

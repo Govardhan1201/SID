@@ -64,14 +64,14 @@ export default function IdeaDetailPage() {
 
   async function toggleLike() {
     if (!userId || !idea) return;
-    const newLikes = liked ? idea.likes.filter((x: string) => x !== userId) : [...(idea.likes || []), userId];
+    const newLikes = liked ? (idea.likes || []).filter((x: string) => x !== userId) : [...(idea.likes || []), userId];
     const i = { ...idea, likes: newLikes };
     setIdea(i);
     await updateIdea(id, { likes: newLikes });
   }
   async function toggleBookmark() {
     if (!userId || !idea) return;
-    const newBookmarks = bookmarked ? idea.bookmarks.filter((x: string) => x !== userId) : [...(idea.bookmarks || []), userId];
+    const newBookmarks = bookmarked ? (idea.bookmarks || []).filter((x: string) => x !== userId) : [...(idea.bookmarks || []), userId];
     const i = { ...idea, bookmarks: newBookmarks };
     setIdea(i);
     await updateIdea(id, { bookmarks: newBookmarks });
