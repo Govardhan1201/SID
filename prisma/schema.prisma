@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Core Models ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         String   // "student" | "recruiter" | "admin"
+  isVerified   Boolean  @default(false)
+  isBanned     Boolean  @default(false)
+  lastLogin    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  studentProfile   StudentProfile?
+  recruiterProfile RecruiterProfile?
+}
+
+model StudentProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  avatar            String   @default("")
+  banner            String   @default("")
+  bio               String   @default("")
+  college           String   @default("")
+  branch            String   @default("")
+  year              Int      @default(1)
+  skills            String[]
+  domains           String[]
+  github            String   @default("")
+  linkedin          String   @default("")
+  portfolio         String   @default("")
+  resume            String   @default("")
+  certificates      String[]
+  achievements      String[]
+  badges            String[]
+  followers         String[]
+  following         String[]
+  bookmarks         String[]
+  profileViews      Int      @default(0)
+  isProfileComplete Boolean  @default(false)
+  agreeToTerms      Boolean  @default(true)
+}
+
+model RecruiterProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  company           String
+  logo              String   @default("")
+  industry          String   @default("")
+  role              String   @default("")
+  hiringInterests   String[]
+  description       String   @default("")
+  website           String   @default("")
+  linkedin          String   @default("")
+  savedCandidates   String[]
+  shortlisted       String[]
+  contactedStudents String[]
+}
+
+// ── Hackathon Models ────────────────────────────────────────────────────────
+
+model Hackathon {
+  id                String   @id @default(uuid())
+  name              String
+  tagline           String   @default("")
+  description       String   @default("")
+  banner            String   @default("")
+  deadline          DateTime
+  status            String   // "draft" | "active" | "judging" | "completed"
+  judgeToken        String   @unique
+  judgePasswordHash String
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tracks        HackathonTrack[]
+  announcements HackathonAnnouncement[]
+  teams         HackathonTeam[]
+  participants  HackathonParticipant[]
+  projects      HackathonProject[]
+}
+
+model HackathonTrack {
+  id               String    @id @default(uuid())
+  hackathonId      String
+  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  name             String
+  description      String
+  problemStatement String
+  openInnovation   Boolean   @default(false)
+}
+
+model HackathonAnnouncement {
+  id          String    @id @default(uuid())
+  hackathonId String
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  text        String
+  type        String    // "info" | "warning" | "success" | "urgent"
+  timestamp   DateTime  @default(now())
+}
+
+model HackathonTeam {
+  id            String   @id @default(uuid())
+  hackathonId   String
+  hackathon     Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  name          String
+  passwordHash  String
+  plainPassword String
+  leaderId      String
+  memberIds     String[] // Store IDs as array for simplicity, or normalize
+  trackId       String?
+  projectId     String?
+  createdAt     DateTime @default(now())
+}
+
+model HackathonParticipant {
+  id               String    @id @default(uuid())
+  hackathonId      String
+  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  userId           String
+  teamId           String
+  role             String    // "leader" | "member"
+  joinedAt         DateTime  @default(now())
+  addedToPortfolio Boolean   @default(false)
+
+  @@unique([hackathonId, userId])
+}
+
+model HackathonProject {
+  id                       String    @id @default(uuid())
+  hackathonId              String
+  hackathon                Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  teamId                   String
+  trackId                  String
+  title                    String
+  tagline                  String
+  description              String
+  problemSolved            String    @default("")
+  techStack                String[]
+  githubLink               String    @default("")
+  demoLink                 String    @default("")
+  videoLink                String    @default("")
+  presentationLink         String    @default("")
+  screenshots              String[]
+  status                   String    // "draft" | "submitted" | "locked"
+  submittedAt              DateTime?
+  linkedPortfolioProjectId String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+// Additional models (Projects, Ideas, Comments, etc.) can be added here
+// as the migration progresses. For this hackathon-focused release, 
+// we ensure the core users and hackathon tables are created.
