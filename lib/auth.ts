@@ -46,7 +46,7 @@ export async function signUp(
 
   const token = createSessionToken(id);
   if (typeof window !== 'undefined') {
-    sessionStorage.setItem(SESSION_KEY, token);
+    localStorage.setItem(SESSION_KEY, token);
     setSessionCookie(token);
   }
 
@@ -64,7 +64,7 @@ export async function signIn(email: string, password: string): Promise<AuthResul
 
   const token = createSessionToken(user.id);
   if (typeof window !== 'undefined') {
-    sessionStorage.setItem(SESSION_KEY, token);
+    localStorage.setItem(SESSION_KEY, token);
     setSessionCookie(token);
   }
 
@@ -77,14 +77,23 @@ export async function signIn(email: string, password: string): Promise<AuthResul
 
 export function signOut(): void {
   if (typeof window !== 'undefined') {
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
     clearSessionCookie();
   }
 }
 
 export function getCurrentSession(): { userId: string; role: UserRole } | null {
   if (typeof window === 'undefined') return null;
-  const token = sessionStorage.getItem(SESSION_KEY);
+  // Try localStorage first (persistent across browser restarts)
+  let token = localStorage.getItem(SESSION_KEY);
+  // Fallback: restore from cookie so middleware-passing sessions still hydrate
+  if (!token) {
+    const match = document.cookie.match(/(?:^|;\s*)if_session=([^;]+)/);
+    if (match) {
+      token = match[1];
+      localStorage.setItem(SESSION_KEY, token); // re-hydrate localStorage
+    }
+  }
   if (!token) return null;
   const parsed = parseSessionToken(token);
   if (!parsed) return null;

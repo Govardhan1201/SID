@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { UserStore, ProjectStore, IdeaStore, StudentStore, AuditStore } from '@/lib/store';
 import { generateId } from '@/lib/security';
 import type { Project, Idea } from '@/types';
-import { LayoutDashboard, Users, Layers, Lightbulb, Shield, Settings, CheckCircle, XCircle, Star, Archive, Flag, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Layers, Lightbulb, Shield, Settings, CheckCircle, XCircle, Star, Archive, Flag, ChevronRight, Trophy } from 'lucide-react';
 import styles from './admin.module.css';
 
 type AdminTab = 'overview' | 'content' | 'users' | 'audit';
@@ -79,7 +79,7 @@ export default function AdminPage() {
               <div className={styles.adminBadge}><Shield size={16} /> Admin Panel</div>
               {([
                 ['overview','Overview',<LayoutDashboard key="d" size={16}/>],
-                ['content',`Moderation Queue (${pendingP.length + pendingI.length})`,<Flag key="f" size={16}/>],
+                ['content',`Moderation (${pendingP.length + pendingI.length})`,<Flag key="f" size={16}/>],
                 ['users','Users',<Users key="u" size={16}/>],
                 ['audit','Audit Log',<Settings key="s" size={16}/>],
               ] as const).map(([t,label,icon])=>(
@@ -87,6 +87,11 @@ export default function AdminPage() {
                   {icon} {label}
                 </button>
               ))}
+              {/* Separate page link for Hackathons */}
+              <hr style={{ borderColor: 'var(--border)', margin: 'var(--space-2) 0' }} />
+              <Link href="/admin/hackathons" className="sidebar__item">
+                <Trophy size={16} /> Hackathons
+              </Link>
             </aside>
 
             {/* Content */}
