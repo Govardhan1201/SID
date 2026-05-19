@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes accessible without login
-const PUBLIC = ['/', '/login', '/signup', '/forgot-password'];
+const PUBLIC_EXACT = ['/', '/login', '/signup', '/forgot-password', '/support'];
+const PUBLIC_PREFIXES = ['/explore', '/project/', '/idea/', '/legal/', '/profile/', '/hackathon/', '/teams'];
+
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -17,8 +19,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Allow public pages
-  if (PUBLIC.includes(pathname)) return NextResponse.next();
+  // Allow exact public pages
+  if (PUBLIC_EXACT.includes(pathname)) return NextResponse.next();
+
+  // Allow public path prefixes (explore, project, idea, profile, legal…)
+  if (PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix))) return NextResponse.next();
 
   // Allow judge view — password-gated at page level, not session-gated
   if (pathname.match(/^\/hackathon\/[^/]+\/judge(\/.*)?$/)) {
