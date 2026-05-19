@@ -141,10 +141,14 @@ function ExploreContent() {
     let list = [...projects];
     if (query) list = list.filter((p: any) => [p.title, p.tagline, p.summary, ...(p.techStack || []), ...(p.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
     if (domain !== 'All') list = list.filter((p: any) => p.domain === domain || p.category === domain);
-    if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
-    else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
-    else if (sort === 'bookmarked') list.sort((a, b) => (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0));
-    else list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    list.sort((a: any, b: any) => {
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+      if (sort === 'popular') return (b.views || 0) - (a.views || 0);
+      if (sort === 'liked') return (b.likes?.length || 0) - (a.likes?.length || 0);
+      if (sort === 'bookmarked') return (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0);
+      return b.createdAt.localeCompare(a.createdAt);
+    });
     return list;
   }
 
@@ -152,9 +156,14 @@ function ExploreContent() {
     let list = [...ideas];
     if (query) list = list.filter((i: any) => [i.title, i.summary, ...(i.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
     if (domain !== 'All') list = list.filter((i: any) => i.domain === domain || i.category === domain);
-    if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
-    else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
-    else list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    list.sort((a: any, b: any) => {
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+      if (sort === 'popular') return (b.views || 0) - (a.views || 0);
+      if (sort === 'liked') return (b.likes?.length || 0) - (a.likes?.length || 0);
+      if (sort === 'bookmarked') return (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0);
+      return b.createdAt.localeCompare(a.createdAt);
+    });
     return list;
   }
 
