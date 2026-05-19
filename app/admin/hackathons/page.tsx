@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { getAllHackathons } from '@/app/actions/hackathon';
 import type { Hackathon } from '@/types';
-import { Plus, Trophy, Clock, CheckCircle, Users, Calendar, ChevronRight, Layers } from 'lucide-react';
+import { Plus, Trophy, Clock, CheckCircle, Users, Calendar, ChevronRight, Layers, ChevronLeft } from 'lucide-react';
 import styles from './hackathons.module.css';
 
 const STATUS_META: Record<Hackathon['status'], { label: string; cls: string }> = {
@@ -42,6 +42,9 @@ export default function HackathonsPage() {
         <div className="container" style={{ paddingTop: 'var(--space-8)', paddingBottom: 'var(--space-16)' }}>
 
           {/* Header */}
+          <Link href="/admin" className={styles.backLink} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: 'var(--text-sm)', color: 'var(--text-4)', marginBottom: 'var(--space-6)', textDecoration: 'none' }}>
+            <ChevronLeft size={14} /> Back to Admin Dashboard
+          </Link>
           <div className={styles.pageHeader}>
             <div>
               <p className={styles.breadcrumb}>Admin Panel</p>

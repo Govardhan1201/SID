@@ -6,27 +6,23 @@ datasource db {
   provider = "postgresql"
 }
 
-// ── Core Models ─────────────────────────────────────────────────────────────
-
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  role         String   // "student" | "recruiter" | "admin"
-  isVerified   Boolean  @default(false)
-  isBanned     Boolean  @default(false)
-  lastLogin    DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  studentProfile   StudentProfile?
+  id               String            @id @default(uuid())
+  email            String            @unique
+  passwordHash     String
+  role             String
+  isVerified       Boolean           @default(false)
+  isBanned         Boolean           @default(false)
+  lastLogin        DateTime          @default(now())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   recruiterProfile RecruiterProfile?
+  studentProfile   StudentProfile?
 }
 
 model StudentProfile {
   id                String   @id @default(uuid())
   userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name              String
   avatar            String   @default("")
   banner            String   @default("")
@@ -49,12 +45,12 @@ model StudentProfile {
   profileViews      Int      @default(0)
   isProfileComplete Boolean  @default(false)
   agreeToTerms      Boolean  @default(true)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RecruiterProfile {
   id                String   @id @default(uuid())
   userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name              String
   company           String
   logo              String   @default("")
@@ -67,73 +63,71 @@ model RecruiterProfile {
   savedCandidates   String[]
   shortlisted       String[]
   contactedStudents String[]
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ── Hackathon Models ────────────────────────────────────────────────────────
-
 model Hackathon {
-  id                String   @id @default(uuid())
+  id                String                  @id @default(uuid())
   name              String
-  tagline           String   @default("")
-  description       String   @default("")
-  banner            String   @default("")
+  tagline           String                  @default("")
+  description       String                  @default("")
+  banner            String                  @default("")
   deadline          DateTime
-  status            String   // "draft" | "active" | "judging" | "completed"
-  judgeToken        String   @unique
+  status            String
+  judgeToken        String                  @unique
   judgePasswordHash String
   createdBy         String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  tracks        HackathonTrack[]
-  announcements HackathonAnnouncement[]
-  teams         HackathonTeam[]
-  participants  HackathonParticipant[]
-  projects      HackathonProject[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  announcements     HackathonAnnouncement[]
+  participants      HackathonParticipant[]
+  projects          HackathonProject[]
+  teams             HackathonTeam[]
+  tracks            HackathonTrack[]
 }
 
 model HackathonTrack {
   id               String    @id @default(uuid())
   hackathonId      String
-  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   name             String
   description      String
   problemStatement String
   openInnovation   Boolean   @default(false)
+  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 }
 
 model HackathonAnnouncement {
   id          String    @id @default(uuid())
   hackathonId String
-  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   text        String
-  type        String    // "info" | "warning" | "success" | "urgent"
+  type        String
   timestamp   DateTime  @default(now())
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 }
 
 model HackathonTeam {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   hackathonId   String
-  hackathon     Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   name          String
   passwordHash  String
   plainPassword String
   leaderId      String
-  memberIds     String[] // Store IDs as array for simplicity, or normalize
+  memberIds     String[]
   trackId       String?
   projectId     String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
+  hackathon     Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 }
 
 model HackathonParticipant {
   id               String    @id @default(uuid())
   hackathonId      String
-  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   userId           String
   teamId           String
-  role             String    // "leader" | "member"
+  role             String
   joinedAt         DateTime  @default(now())
   addedToPortfolio Boolean   @default(false)
+  hackathon        Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 
   @@unique([hackathonId, userId])
 }
@@ -141,7 +135,6 @@ model HackathonParticipant {
 model HackathonProject {
   id                       String    @id @default(uuid())
   hackathonId              String
-  hackathon                Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   teamId                   String
   trackId                  String
   title                    String
@@ -154,14 +147,13 @@ model HackathonProject {
   videoLink                String    @default("")
   presentationLink         String    @default("")
   screenshots              String[]
-  status                   String    // "draft" | "submitted" | "locked"
+  status                   String
   submittedAt              DateTime?
   linkedPortfolioProjectId String?
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
+  hackathon                Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 }
-
-// ── Global Models ─────────────────────────────────────────────────────────────
 
 model Project {
   id               String   @id @default(uuid())
@@ -192,56 +184,56 @@ model Project {
   likes            String[]
   bookmarks        String[]
   views            Int      @default(0)
-  viewedBy         String[]
   version          Int      @default(1)
-  teamId           String?
-  teamMembers      Json     @default("[]")
-  challengesFaced  String   @default("")
-  learnings        String   @default("")
-  futureScope      String   @default("")
-  comments         Json     @default("[]")
-  versionHistory   Json     @default("[]")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  challengesFaced  String   @default("")
+  comments         Json     @default("[]")
+  futureScope      String   @default("")
+  learnings        String   @default("")
+  teamId           String?
+  teamMembers      Json     @default("[]")
+  versionHistory   Json     @default("[]")
+  viewedBy         String[]
 }
 
 model Idea {
-  id               String   @id @default(uuid())
-  title            String
-  description      String
-  problem          String   @default("")
-  solution         String   @default("")
-  domain           String
-  tags             String[]
-  sdgMapping       String[]
-  targetAudience   String   @default("")
-  estimatedEffort  String   @default("")
-  authorId         String
-  status           String   @default("open")
-  seekingTeam      Boolean  @default(false)
-  rolesNeeded      String[]
-  likes            String[]
-  bookmarks        String[]
-  views            Int      @default(0)
-  viewedBy         String[]
+  id                   String   @id @default(uuid())
+  title                String
+  description          String
+  problem              String   @default("")
+  solution             String   @default("")
+  domain               String
+  tags                 String[]
+  sdgMapping           String[]
+  targetAudience       String   @default("")
+  estimatedEffort      String   @default("")
+  authorId             String
+  status               String   @default("open")
+  seekingTeam          Boolean  @default(false)
+  rolesNeeded          String[]
+  likes                String[]
+  bookmarks            String[]
+  views                Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  category             String   @default("")
+  comments             Json     @default("[]")
   convertedToProjectId String?
-  comments         Json     @default("[]")
-  version          Int      @default(1)
-  versionHistory   Json     @default("[]")
-  summary          String   @default("")
-  impact           String   @default("")
-  feasibility      String   @default("")
-  novelty          String   @default("")
-  category         String   @default("")
-  neededResources  String[]
-  stage            String   @default("raw")
-  risks            String   @default("")
-  roadmap          String   @default("")
-  visibility       String   @default("public")
-  moderationStatus String   @default("pending")
-  isFeatured       Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  feasibility          String   @default("")
+  impact               String   @default("")
+  isFeatured           Boolean  @default(false)
+  moderationStatus     String   @default("pending")
+  neededResources      String[]
+  novelty              String   @default("")
+  risks                String   @default("")
+  roadmap              String   @default("")
+  stage                String   @default("raw")
+  summary              String   @default("")
+  version              Int      @default(1)
+  versionHistory       Json     @default("[]")
+  visibility           String   @default("public")
+  viewedBy             String[]
 }
 
 model Team {
@@ -255,11 +247,11 @@ model Team {
   isOpen      Boolean  @default(true)
   rolesNeeded String[]
   projectId   String?
-  projectIds  String[]
-  ideaIds     String[]
-  activity    Json     @default("[]")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  activity    Json     @default("[]")
+  ideaIds     String[]
+  projectIds  String[]
 }
 
 model Notification {
@@ -274,26 +266,26 @@ model Notification {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  senderId  String
+  id         String   @id @default(uuid())
+  senderId   String
   receiverId String
-  content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }
 
 model Report {
-  id           String   @id @default(uuid())
-  reporterId   String
-  reportedId   String
-  targetType   String   // "user" | "project" | "idea"
-  targetId     String
-  reason       String
-  description  String
-  status       String   @default("pending")
-  createdAt    DateTime @default(now())
-  resolvedAt   DateTime?
-  resolution   String?
+  id          String    @id @default(uuid())
+  reporterId  String
+  reportedId  String
+  targetType  String
+  targetId    String
+  reason      String
+  description String
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  resolution  String?
 }
 
 model AuditLog {
@@ -305,4 +297,3 @@ model AuditLog {
   details    String
   timestamp  DateTime @default(now())
 }
-
