@@ -9,6 +9,7 @@ import { getStudentProfileById } from '@/app/actions/users';
 import { useAuth } from '@/context/AuthContext';
 import useSWR from 'swr';
 import { IdeaCardSkeleton } from '@/components/ui/Skeletons';
+import { generateId } from '@/lib/security';
 import type { Idea, Comment } from '@/types';
 import { Eye, Heart, Bookmark, ArrowLeft, Send, ArrowRight, Tag, Flag } from 'lucide-react';
 import styles from './idea.module.css';
@@ -96,7 +97,6 @@ export default function IdeaDetailPage() {
   }
   async function postComment() {
     if (!userId || !comment.trim() || !idea) return;
-    import { generateId } from '@/lib/security';
     const c: Comment = { id: generateId(), authorId: userId, content: comment.trim().slice(0, 2000), likes: [], replies: [], isReported: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     const newComments = [...(Array.isArray(idea.comments) ? idea.comments : []), c];
     const i = { ...idea, comments: newComments };
