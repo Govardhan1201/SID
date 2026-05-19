@@ -20,9 +20,10 @@ export default function ProjectDetailPage() {
   const { role, userId, studentProfile } = useAuth();
   const [commentAuthors, setCommentAuthors] = useState<Record<string, StudentProfile>>({});
   const [teamAuthors, setTeamAuthors] = useState<Record<string, StudentProfile>>({});
+  const [author, setAuthor] = useState<StudentProfile | null>(null);
   const [comment, setComment] = useState('');
 
-  const fetchProjectDetails = useCallback(async () => {
+  const fetchProjectDetails = useCallback(async (): Promise<any> => {
     const p = await getProjectById(id) as unknown as Project;
     if (!p) { router.replace('/explore'); return null; }
     if (p.visibility === 'admin-only' && role === null) { router.replace('/login'); return null; }
@@ -52,7 +53,7 @@ export default function ProjectDetailPage() {
     const auth = await getStudentProfileById(p.authorId) as unknown as StudentProfile;
     setAuthor(auth ?? null);
 
-    return p;
+    return p as any;
   }, [id, role, router]);
 
   const { data: project, mutate: mutateProject, isLoading } = useSWR(`project-${id}`, fetchProjectDetails);
@@ -81,7 +82,7 @@ export default function ProjectDetailPage() {
     const p = { ...project };
     if (liked) p.likes = (p.likes || []).filter((x: string) => x !== userId);
     else p.likes = [...(p.likes || []), userId];
-    mutateProject(p, false);
+    mutateProject(p as any, false);
     try {
       await updateProject(id, { likes: p.likes });
       mutateProject();
@@ -95,7 +96,7 @@ export default function ProjectDetailPage() {
     const p = { ...project };
     if (bookmarked) p.bookmarks = (p.bookmarks || []).filter((x: string) => x !== userId);
     else p.bookmarks = [...(p.bookmarks || []), userId];
-    mutateProject(p, false);
+    mutateProject(p as any, false);
     try {
       await updateProject(id, { bookmarks: p.bookmarks });
       mutateProject();
@@ -113,7 +114,7 @@ export default function ProjectDetailPage() {
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     const p = { ...project, comments: [...(project.comments || []), c] };
-    mutateProject(p, false); setComment('');
+    mutateProject(p as any, false); setComment('');
     try {
       await updateProject(id, { comments: p.comments });
       mutateProject();
@@ -185,7 +186,7 @@ export default function ProjectDetailPage() {
               {project.tags.length > 0 && (
                 <div className={styles.section}>
                   <h2 className={styles.sectionTitle}><Tag size={16} /> Tags</h2>
-                  <div className="chip-list">{project.tags.map(t => <span key={t} className="chip">{t}</span>)}</div>
+                  <div className="chip-list">{project.tags.map((t: any) => <span key={t} className="chip">{t}</span>)}</div>
                 </div>
               )}
 
@@ -193,7 +194,7 @@ export default function ProjectDetailPage() {
               {project.sdgMapping.length > 0 && (
                 <div className={styles.section}>
                   <h2 className={styles.sectionTitle}>SDG Alignment</h2>
-                  <div className="chip-list">{project.sdgMapping.map(s => <span key={s} className="badge badge-success">{s}</span>)}</div>
+                  <div className="chip-list">{project.sdgMapping.map((s: any) => <span key={s} className="badge badge-success">{s}</span>)}</div>
                 </div>
               )}
 
@@ -212,7 +213,7 @@ export default function ProjectDetailPage() {
                   <p className={styles.loginPrompt}><Link href="/login" className={styles.loginLink}>Sign in</Link> to leave a comment.</p>
                 )}
                 <div className={styles.commentList}>
-                  {project.comments.map(c => {
+                  {project.comments.map((c: any) => {
                     const ca = commentAuthors[c.authorId];
                     return (
                       <div key={c.id} className={styles.comment}>
@@ -243,7 +244,7 @@ export default function ProjectDetailPage() {
                     </div>
                   </Link>
                   <div className="chip-list" style={{ marginTop: 'var(--space-3)' }}>
-                    {author.skills.slice(0, 4).map(s => <span key={s} className="chip">{s}</span>)}
+                    {author.skills.slice(0, 4).map((s: any) => <span key={s} className="chip">{s}</span>)}
                   </div>
                 </div>
               )}
@@ -251,7 +252,7 @@ export default function ProjectDetailPage() {
               {/* Tech stack */}
               <div className="card" style={{ padding: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
                 <p className={styles.sideLabel}>Tech stack</p>
-                <div className="chip-list">{project.techStack.map(t => <span key={t} className="chip">{t}</span>)}</div>
+                <div className="chip-list">{project.techStack.map((t: any) => <span key={t} className="chip">{t}</span>)}</div>
               </div>
 
               {/* Team */}
@@ -259,7 +260,7 @@ export default function ProjectDetailPage() {
                 <div className="card" style={{ padding: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
                   <p className={styles.sideLabel}><Users size={13} /> Team</p>
                   <div className={styles.teamList}>
-                    {project.teamMembers.map(m => (
+                    {project.teamMembers.map((m: any) => (
                       <div key={m.userId} className={styles.teamMember}>
                         <img src={teamAuthors[m.userId]?.avatar ?? `https://api.dicebear.com/8.x/initials/svg?seed=${m.name}`} alt={m.name} className="avatar avatar-sm" />
                         <div>

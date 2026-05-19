@@ -21,9 +21,11 @@ export default function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { role, userId, studentProfile } = useAuth();
+  const [author, setAuthor] = useState<any>(null);
   const [commentAuthors, setCommentAuthors] = useState<Record<string, any>>({});
+  const [comment, setComment] = useState('');
   
-  const fetchIdeaDetails = useCallback(async () => {
+  const fetchIdeaDetails = useCallback(async (): Promise<any> => {
     const i = await getIdeaById(id);
     if (!i) { router.replace('/explore?tab=ideas'); return null; }
     if (i.visibility === 'admin-only' && !role) { router.replace('/login'); return null; }
@@ -46,7 +48,7 @@ export default function IdeaDetailPage() {
       }
     }
     setCommentAuthors(ca);
-    return i;
+    return i as any;
   }, [id, role, router]);
 
   const { data: idea, mutate: mutateIdea, isLoading } = useSWR(`idea-${id}`, fetchIdeaDetails);
@@ -75,7 +77,7 @@ export default function IdeaDetailPage() {
     if (!userId || !idea) return;
     const newLikes = liked ? (idea.likes || []).filter((x: string) => x !== userId) : [...(idea.likes || []), userId];
     const i = { ...idea, likes: newLikes };
-    mutateIdea(i, false);
+    mutateIdea(i as any, false);
     try {
       await updateIdea(id, { likes: newLikes });
       mutateIdea();
@@ -87,7 +89,7 @@ export default function IdeaDetailPage() {
     if (!userId || !idea) return;
     const newBookmarks = bookmarked ? (idea.bookmarks || []).filter((x: string) => x !== userId) : [...(idea.bookmarks || []), userId];
     const i = { ...idea, bookmarks: newBookmarks };
-    mutateIdea(i, false);
+    mutateIdea(i as any, false);
     try {
       await updateIdea(id, { bookmarks: newBookmarks });
       mutateIdea();
@@ -100,7 +102,7 @@ export default function IdeaDetailPage() {
     const c: Comment = { id: generateId(), authorId: userId, content: comment.trim().slice(0, 2000), likes: [], replies: [], isReported: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     const newComments = [...(Array.isArray(idea.comments) ? idea.comments : []), c];
     const i = { ...idea, comments: newComments };
-    mutateIdea(i, false); setComment('');
+    mutateIdea(i as any, false); setComment('');
     try {
       await updateIdea(id, { comments: newComments });
       mutateIdea();

@@ -51,7 +51,7 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
 
         {/* Tech stack */}
         <div className={styles.techRow}>
-          {(project.techStack || []).slice(0, 4).map(t => (
+          {(project.techStack || []).slice(0, 4).map((t: any) => (
             <span key={t} className={styles.techTag}>{t}</span>
           ))}
           {(project.techStack || []).length > 4 && (

@@ -40,10 +40,10 @@ function ExploreContent() {
 
   const visRole = role ?? 'public';
 
-  const { data: projects = [], mutate: mutateProjects, isLoading: loadingProjects } = useSWR(['projects', visRole], () => getVisibleProjects(visRole as any) as Promise<Project[]>);
-  const { data: ideas = [], mutate: mutateIdeas, isLoading: loadingIdeas } = useSWR(['ideas', visRole], () => getVisibleIdeas(visRole as any) as Promise<Idea[]>);
-  const { data: students = [], isLoading: loadingStudents } = useSWR('students', () => getAllStudentProfiles() as Promise<StudentProfile[]>);
-  const { data: teams = [], isLoading: loadingTeams } = useSWR('teams', () => getAllTeams() as Promise<Team[]>);
+  const { data: projects = [], mutate: mutateProjects, isLoading: loadingProjects } = useSWR(['projects', visRole], () => getVisibleProjects(visRole as any) as unknown as Promise<any[]>);
+  const { data: ideas = [], mutate: mutateIdeas, isLoading: loadingIdeas } = useSWR(['ideas', visRole], () => getVisibleIdeas(visRole as any) as unknown as Promise<any[]>);
+  const { data: students = [], isLoading: loadingStudents } = useSWR('students', () => getAllStudentProfiles() as unknown as Promise<any[]>);
+  const { data: teams = [], isLoading: loadingTeams } = useSWR('teams', () => getAllTeams() as unknown as Promise<any[]>);
 
   const isLoadingData = loadingProjects || loadingIdeas || loadingStudents || loadingTeams;
 
@@ -53,10 +53,10 @@ function ExploreContent() {
     const p = projects.find(x => x.id === id);
     if (!p) return;
     const liked = p.likes?.includes(userId);
-    const newLikes = liked ? (p.likes || []).filter(x => x !== userId) : [...(p.likes || []), userId];
+    const newLikes = liked ? (p.likes || []).filter((x: any) => x !== userId) : [...(p.likes || []), userId];
     
     mutateProjects(
-      projects.map(proj => proj.id === id ? { ...proj, likes: newLikes } : proj),
+      projects.map((proj: any) => proj.id === id ? { ...proj, likes: newLikes } : proj),
       false // optimistic
     );
     
@@ -75,10 +75,10 @@ function ExploreContent() {
     const p = projects.find(x => x.id === id);
     if (!p) return;
     const bookmarked = p.bookmarks?.includes(userId);
-    const newBookmarks = bookmarked ? (p.bookmarks || []).filter(x => x !== userId) : [...(p.bookmarks || []), userId];
+    const newBookmarks = bookmarked ? (p.bookmarks || []).filter((x: any) => x !== userId) : [...(p.bookmarks || []), userId];
     
     mutateProjects(
-      projects.map(proj => proj.id === id ? { ...proj, bookmarks: newBookmarks } : proj),
+      projects.map((proj: any) => proj.id === id ? { ...proj, bookmarks: newBookmarks } : proj),
       false
     );
     
@@ -97,10 +97,10 @@ function ExploreContent() {
     const i = ideas.find(x => x.id === id);
     if (!i) return;
     const liked = i.likes?.includes(userId);
-    const newLikes = liked ? (i.likes || []).filter(x => x !== userId) : [...(i.likes || []), userId];
+    const newLikes = liked ? (i.likes || []).filter((x: any) => x !== userId) : [...(i.likes || []), userId];
     
     mutateIdeas(
-      ideas.map(idea => idea.id === id ? { ...idea, likes: newLikes } : idea),
+      ideas.map((idea: any) => idea.id === id ? { ...idea, likes: newLikes } : idea),
       false
     );
     
@@ -119,10 +119,10 @@ function ExploreContent() {
     const i = ideas.find(x => x.id === id);
     if (!i) return;
     const bookmarked = i.bookmarks?.includes(userId);
-    const newBookmarks = bookmarked ? (i.bookmarks || []).filter(x => x !== userId) : [...(i.bookmarks || []), userId];
+    const newBookmarks = bookmarked ? (i.bookmarks || []).filter((x: any) => x !== userId) : [...(i.bookmarks || []), userId];
     
     mutateIdeas(
-      ideas.map(idea => idea.id === id ? { ...idea, bookmarks: newBookmarks } : idea),
+      ideas.map((idea: any) => idea.id === id ? { ...idea, bookmarks: newBookmarks } : idea),
       false
     );
     
@@ -139,8 +139,8 @@ function ExploreContent() {
   // ── Filters ───────────────────────────────────────────────────────
   function filterProjects() {
     let list = [...projects];
-    if (query) list = list.filter(p => [p.title, p.tagline, p.summary, ...(p.techStack || []), ...(p.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
-    if (domain !== 'All') list = list.filter(p => p.domain === domain || p.category === domain);
+    if (query) list = list.filter((p: any) => [p.title, p.tagline, p.summary, ...(p.techStack || []), ...(p.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
+    if (domain !== 'All') list = list.filter((p: any) => p.domain === domain || p.category === domain);
     if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
     else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
     else if (sort === 'bookmarked') list.sort((a, b) => (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0));
@@ -150,8 +150,8 @@ function ExploreContent() {
 
   function filterIdeas() {
     let list = [...ideas];
-    if (query) list = list.filter(i => [i.title, i.summary, ...(i.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
-    if (domain !== 'All') list = list.filter(i => i.domain === domain || i.category === domain);
+    if (query) list = list.filter((i: any) => [i.title, i.summary, ...(i.tags || [])].some(f => f?.toLowerCase().includes(query.toLowerCase())));
+    if (domain !== 'All') list = list.filter((i: any) => i.domain === domain || i.category === domain);
     if (sort === 'popular')    list.sort((a, b) => (b.views || 0) - (a.views || 0));
     else if (sort === 'liked') list.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
     else list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -238,7 +238,7 @@ function ExploreContent() {
           {tab === 'projects' && (
             isLoadingData ? <GridSkeleton count={6} type="project" /> :
             fp.length > 0
-              ? <div className="grid-3">{fp.map(p =>
+              ? <div className="grid-3">{fp.map((p: any) =>
                   <ProjectCard
                     key={p.id}
                     project={p}
@@ -257,7 +257,7 @@ function ExploreContent() {
           {tab === 'ideas' && (
             isLoadingData ? <GridSkeleton count={6} type="idea" /> :
             fi.length > 0
-              ? <div className="grid-3">{fi.map(i =>
+              ? <div className="grid-3">{fi.map((i: any) =>
                   <IdeaCard
                     key={i.id}
                     idea={i}

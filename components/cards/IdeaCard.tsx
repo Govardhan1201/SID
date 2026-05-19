@@ -52,11 +52,11 @@ export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Pr
         </Link>
         <p className={styles.summary}>{idea.summary}</p>
 
-        {(idea.rolesNeeded || idea.neededSkills || []).length > 0 && (
+        {((idea as any).rolesNeeded || (idea as any).neededSkills || []).length > 0 && (
           <div className={styles.needs}>
             <span className={styles.needsLabel}>Looking for:</span>
             <div className="chip-list">
-              {(idea.rolesNeeded || idea.neededSkills || []).slice(0, 3).map((s: string) => (
+              {((idea as any).rolesNeeded || (idea as any).neededSkills || []).slice(0, 3).map((s: string) => (
                 <span key={s} className="chip">{s}</span>
               ))}
             </div>

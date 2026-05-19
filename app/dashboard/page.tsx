@@ -55,9 +55,9 @@ function DashboardContent() {
     return myHacks;
   }, [userId]);
 
-  const { data: projects = [], isLoading: loadingProjects } = useSWR(userId ? ['dashboard-projects', userId] : null, () => getProjectsByUserId(userId!) as Promise<Project[]>);
-  const { data: ideas = [], isLoading: loadingIdeas } = useSWR(userId ? ['dashboard-ideas', userId] : null, () => getIdeasByUserId(userId!) as Promise<Idea[]>);
-  const { data: notifications = [], mutate: mutateNotifs, isLoading: loadingNotifs } = useSWR(userId ? ['dashboard-notifs', userId] : null, () => getNotifications(userId!) as Promise<Notification[]>);
+  const { data: projects = [], isLoading: loadingProjects } = useSWR(userId ? ['dashboard-projects', userId] : null, () => getProjectsByUserId(userId!) as unknown as Promise<any[]>);
+  const { data: ideas = [], isLoading: loadingIdeas } = useSWR(userId ? ['dashboard-ideas', userId] : null, () => getIdeasByUserId(userId!) as unknown as Promise<any[]>);
+  const { data: notifications = [], mutate: mutateNotifs, isLoading: loadingNotifs } = useSWR(userId ? ['dashboard-notifs', userId] : null, () => getNotifications(userId!) as unknown as Promise<any[]>);
   const { data: myHackathons = [], isLoading: loadingHacks } = useSWR(userId ? ['dashboard-hacks', userId] : null, fetchHackathons);
 
   const isLoadingData = loadingProjects || loadingIdeas || loadingNotifs || loadingHacks;
@@ -70,10 +70,10 @@ function DashboardContent() {
 
   if (isLoading || !studentProfile) return null;
 
-  const totalViews    = projects.reduce((s, p) => s + (p.views || 0), 0) + ideas.reduce((s, i) => s + (i.views || 0), 0);
-  const totalLikes    = projects.reduce((s, p) => s + (p.likes?.length || 0), 0) + ideas.reduce((s, i) => s + (i.likes?.length || 0), 0);
-  const totalBookmarks = projects.reduce((s, p) => s + (p.bookmarks?.length || 0), 0);
-  const unread        = notifications.filter(n => !n.isRead).length;
+  const totalViews    = projects.reduce((s: number, p: any) => s + (p.views || 0), 0) + ideas.reduce((s: number, i: any) => s + (i.views || 0), 0);
+  const totalLikes    = projects.reduce((s: number, p: any) => s + (p.likes?.length || 0), 0) + ideas.reduce((s: number, i: any) => s + (i.likes?.length || 0), 0);
+  const totalBookmarks = projects.reduce((s: number, p: any) => s + (p.bookmarks?.length || 0), 0);
+  const unread        = notifications.filter((n: any) => !n.isRead).length;
 
   const completeness = [
     !!studentProfile.name, !!studentProfile.bio, !!studentProfile.college,
@@ -85,7 +85,7 @@ function DashboardContent() {
   const completePct   = Math.round((completeCount / completeness.length) * 100);
 
   async function markRead(id: string) {
-    const updated = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
+    const updated = notifications.map((n: any) => n.id === id ? { ...n, isRead: true } : n);
     mutateNotifs(updated, false);
     try {
       await markNotificationAsRead(id);
@@ -97,11 +97,11 @@ function DashboardContent() {
 
   async function markAllRead() {
     if (!userId) return;
-    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
-    const updated = notifications.map(n => ({ ...n, isRead: true }));
+    const unreadIds = notifications.filter((n: any) => !n.isRead).map((n: any) => n.id);
+    const updated = notifications.map((n: any) => ({ ...n, isRead: true }));
     mutateNotifs(updated, false);
     try {
-      await Promise.all(unreadIds.map(id => markNotificationAsRead(id)));
+      await Promise.all(unreadIds.map((id: string) => markNotificationAsRead(id)));
       mutateNotifs();
     } catch(e) {
       mutateNotifs();
@@ -165,7 +165,7 @@ function DashboardContent() {
                   ) : (
                     <>
                       {/* Active Hackathon Alert */}
-                  {myHackathons.map(h => (
+                  {myHackathons.map((h: any) => (
                     <div key={h.id} className={styles.completeCard} style={{ background: 'var(--primary-dim)', borderColor: 'rgba(56, 189, 248, 0.2)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-5)' }}>
                       <div>
                         <p className={styles.completeTitle} style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -208,7 +208,7 @@ function DashboardContent() {
                       <h2 className={styles.sectionTitle}><Layers size={15} /> Recent submissions</h2>
                       <button className="tab-btn" onClick={() => setTab('projects')}>View all</button>
                     </div>
-                    {projects.slice(0, 3).map(p => (
+                    {projects.slice(0, 3).map((p: any) => (
                       <div key={p.id} className={styles.subRow}>
                         <div className={styles.subInfo}>
                           <Link href={`/project/${p.id}`} className={styles.subTitle}>{p.title}</Link>
@@ -259,7 +259,7 @@ function DashboardContent() {
                   {isLoadingData ? <GridSkeleton count={2} type="project" /> :
                    projects.length === 0
                     ? <div className="empty-state"><Layers size={40} className="empty-state__icon" /><p className="empty-state__title">No projects yet</p><Link href="/dashboard/projects/new" className="btn btn-primary btn-sm">Submit your first project</Link></div>
-                    : projects.map(p => (
+                    : projects.map((p: any) => (
                       <div key={p.id} className={styles.subRow}>
                         <div className={styles.subInfo}>
                           <Link href={`/project/${p.id}`} className={styles.subTitle}>{p.title}</Link>
@@ -292,7 +292,7 @@ function DashboardContent() {
                   {isLoadingData ? <GridSkeleton count={2} type="idea" /> :
                    ideas.length === 0
                     ? <div className="empty-state"><Lightbulb size={40} className="empty-state__icon" /><p className="empty-state__title">No ideas yet</p><Link href="/dashboard/ideas/new" className="btn btn-primary btn-sm">Submit your first idea</Link></div>
-                    : ideas.map(i => (
+                    : ideas.map((i: any) => (
                       <div key={i.id} className={styles.subRow}>
                         <div className={styles.subInfo}>
                           <Link href={`/idea/${i.id}`} className={styles.subTitle}>{i.title}</Link>
@@ -327,7 +327,7 @@ function DashboardContent() {
                   </div>
                   {notifications.length === 0
                     ? <div className="empty-state"><Bell size={40} className="empty-state__icon" /><p className="empty-state__title">No notifications yet</p></div>
-                    : notifications.map(n => (
+                    : notifications.map((n: any) => (
                       <div key={n.id} className={`${styles.notifRow} ${!n.isRead ? styles.notifUnread : ''}`}>
                         {!n.isRead && <div className="notif-dot" />}
                         <div className={styles.notifText}>
