@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import CookieConsent from '@/components/layout/CookieConsent';
+import PageTransition from '@/components/layout/PageTransition';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className}>
         <AuthProvider>
           <NotificationProvider>
+            <PageTransition />
             {children}
             <CookieConsent />
           </NotificationProvider>

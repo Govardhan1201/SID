@@ -41,9 +41,9 @@ export default function RecruiterPage() {
       setStudents(s as unknown as StudentProfile[]);
       if (recruiterProfile) setShortlist(recruiterProfile.shortlisted || []);
 
-      const p = await getVisibleProjects('public');
+      const p = await getVisibleProjects('recruiter');
       setTotalProjects(p.length);
-      const i = await getVisibleIdeas('public');
+      const i = await getVisibleIdeas('recruiter');
       setTotalIdeas(i.length);
     }
     load();

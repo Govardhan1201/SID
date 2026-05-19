@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { getIdeaById, updateIdea } from '@/app/actions/ideas';
+import { getIdeaById, updateIdea, recordIdeaView } from '@/app/actions/ideas';
 import { getStudentProfileById } from '@/app/actions/users';
 import { useAuth } from '@/context/AuthContext';
 import useSWR from 'swr';
@@ -30,9 +30,16 @@ export default function IdeaDetailPage() {
     if (!i) { router.replace('/explore?tab=ideas'); return null; }
     if (i.visibility === 'admin-only' && !role) { router.replace('/login'); return null; }
     
-    const views = (i.views || 0) + 1;
-    try { await updateIdea(id, { views }); } catch(e) {}
-    i.views = views;
+    // Per-account view deduplication
+    if (userId) {
+      try { await recordIdeaView(id, userId); i.views = (i.views || 0) + 1; } catch(e) {}
+    } else {
+      const viewKey = `viewed_idea_${id}`;
+      if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
+        sessionStorage.setItem(viewKey, '1');
+        try { await recordIdeaView(id, null); i.views = (i.views || 0) + 1; } catch(e) {}
+      }
+    }
 
     if (i.authorId) {
       const auth = await getStudentProfileById(i.authorId);

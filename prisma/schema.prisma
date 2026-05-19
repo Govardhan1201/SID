@@ -192,6 +192,7 @@ model Project {
   likes            String[]
   bookmarks        String[]
   views            Int      @default(0)
+  viewedBy         String[]
   version          Int      @default(1)
   teamId           String?
   teamMembers      Json     @default("[]")
@@ -222,6 +223,7 @@ model Idea {
   likes            String[]
   bookmarks        String[]
   views            Int      @default(0)
+  viewedBy         String[]
   convertedToProjectId String?
   comments         Json     @default("[]")
   version          Int      @default(1)

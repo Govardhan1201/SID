@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { getProjectById, updateProject } from '@/app/actions/projects';
+import { getProjectById, updateProject, recordProjectView } from '@/app/actions/projects';
 import { getStudentProfileById } from '@/app/actions/users';
 import { useAuth } from '@/context/AuthContext';
 import { generateId } from '@/lib/security';
@@ -28,14 +28,16 @@ export default function ProjectDetailPage() {
     if (!p) { router.replace('/explore'); return null; }
     if (p.visibility === 'admin-only' && role === null) { router.replace('/login'); return null; }
 
-    // Deduplicate view count: only increment once per browser session per project
-    const viewKey = `viewed_project_${id}`;
-    if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
-      p.views = (p.views || 0) + 1;
-      sessionStorage.setItem(viewKey, '1');
-      try {
-        await updateProject(id, { views: p.views });
-      } catch(e) {}
+    // Per-account view deduplication via recordProjectView
+    // For guests, use sessionStorage to avoid double-counting
+    if (userId) {
+      try { await recordProjectView(id, userId); p.views = (p.views || 0) + 1; } catch(e) {}
+    } else {
+      const viewKey = `viewed_project_${id}`;
+      if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
+        sessionStorage.setItem(viewKey, '1');
+        try { await recordProjectView(id, null); p.views = (p.views || 0) + 1; } catch(e) {}
+      }
     }
 
     const cArr = Array.isArray(p.comments) ? p.comments : [];

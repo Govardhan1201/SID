@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { signInAction, signUpAction, signOutAction, getSessionAction, getProfileAction } from '@/app/actions/auth';
+import { mutate } from 'swr';
 import type { UserRole, StudentProfile, RecruiterProfile } from '@/types';
 
 interface AuthContextValue {
@@ -70,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null);
     setStudentProfile(null);
     setRecruiterProfile(null);
+    // Clear all SWR caches to prevent stale data on next login
+    mutate(() => true, undefined, { revalidate: false });
   };
 
   const register = async (email: string, password: string, r: 'student' | 'recruiter') => {
