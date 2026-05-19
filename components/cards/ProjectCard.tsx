@@ -85,6 +85,7 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
             className={`${styles.statBtn} ${liked ? styles.liked : ''}`}
             onClick={() => onLike?.(project.id)}
             aria-label="Like"
+            data-tooltip={liked ? "Unlike" : "Like"}
           >
             <Heart size={12} fill={liked ? 'currentColor' : 'none'} />
             {project.likes?.length || 0}
@@ -93,6 +94,7 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
             className={`${styles.statBtn} ${bookmarked ? styles.bookmarked : ''}`}
             onClick={() => onBookmark?.(project.id)}
             aria-label="Bookmark"
+            data-tooltip={bookmarked ? "Remove bookmark" : "Bookmark"}
           >
             <Bookmark size={12} fill={bookmarked ? 'currentColor' : 'none'} />
             {project.bookmarks?.length || 0}

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
@@ -9,6 +9,8 @@ import { getProjectsByUserId } from '@/app/actions/projects';
 import { getIdeasByUserId } from '@/app/actions/ideas';
 import { getNotifications, markNotificationAsRead } from '@/app/actions/users';
 import { getHackathonById, getParticipantsByHackathon } from '@/app/actions/hackathon';
+import useSWR from 'swr';
+import { GridSkeleton } from '@/components/ui/Skeletons';
 import type { Project, Idea, Notification } from '@/types';
 import {
   LayoutDashboard, Layers, Lightbulb, Settings, Plus,
@@ -38,44 +40,27 @@ function DashboardContent() {
   const params      = useSearchParams();
 
   const [tab,           setTab]          = useState<DashTab>((params.get('tab') as DashTab) ?? 'overview');
-  const [projects,      setProjects]     = useState<Project[]>([]);
-  const [ideas,         setIdeas]        = useState<Idea[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [myHackathons,  setMyHackathons]  = useState<Array<{ id: string; name: string; status: string }>>([]);
-
-  useEffect(() => {
-    if (!isLoading && (!userId || role !== 'student')) router.replace('/login');
-  }, [userId, role, isLoading, router]);
-
-  useEffect(() => {
-    async function loadData() {
-      if (!userId) return;
-      setProjects(await getProjectsByUserId(userId) as unknown as Project[]);
-      setIdeas(await getIdeasByUserId(userId) as unknown as Idea[]);
-      setNotifications(await getNotifications(userId) as unknown as Notification[]);
-      
-      try {
-        // Find active hackathons the user is part of
-        // To avoid expensive global queries, ideally we'd have a getUserHackathons action,
-        // but for now we will get hackathons safely without blowing up local storage.
-        const { getAllHackathons } = require('@/app/actions/hackathon');
-        const allHacks = await getAllHackathons();
-        const myHacks = [];
-        
-        for (const h of allHacks) {
-          if (h.status === 'draft') continue;
-          const participants = await getParticipantsByHackathon(h.id);
-          if (participants.some((p: any) => p.userId === userId)) {
-            myHacks.push(h);
-          }
-        }
-        setMyHackathons(myHacks);
-      } catch (err) {
-        console.error(err);
+  const fetchHackathons = useCallback(async () => {
+    if (!userId) return [];
+    const { getAllHackathons } = require('@/app/actions/hackathon');
+    const allHacks = await getAllHackathons();
+    const myHacks = [];
+    for (const h of allHacks) {
+      if (h.status === 'draft') continue;
+      const participants = await getParticipantsByHackathon(h.id);
+      if (participants.some((p: any) => p.userId === userId)) {
+        myHacks.push(h);
       }
     }
-    loadData();
+    return myHacks;
   }, [userId]);
+
+  const { data: projects = [], isLoading: loadingProjects } = useSWR(userId ? ['dashboard-projects', userId] : null, () => getProjectsByUserId(userId!) as Promise<Project[]>);
+  const { data: ideas = [], isLoading: loadingIdeas } = useSWR(userId ? ['dashboard-ideas', userId] : null, () => getIdeasByUserId(userId!) as Promise<Idea[]>);
+  const { data: notifications = [], mutate: mutateNotifs, isLoading: loadingNotifs } = useSWR(userId ? ['dashboard-notifs', userId] : null, () => getNotifications(userId!) as Promise<Notification[]>);
+  const { data: myHackathons = [], isLoading: loadingHacks } = useSWR(userId ? ['dashboard-hacks', userId] : null, fetchHackathons);
+
+  const isLoadingData = loadingProjects || loadingIdeas || loadingNotifs || loadingHacks;
 
   // Sync tab from URL when it changes
   useEffect(() => {
@@ -100,19 +85,27 @@ function DashboardContent() {
   const completePct   = Math.round((completeCount / completeness.length) * 100);
 
   async function markRead(id: string) {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    const updated = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
+    mutateNotifs(updated, false);
     try {
       await markNotificationAsRead(id);
-    } catch(e) {}
+      mutateNotifs();
+    } catch(e) {
+      mutateNotifs();
+    }
   }
 
   async function markAllRead() {
     if (!userId) return;
     const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    const updated = notifications.map(n => ({ ...n, isRead: true }));
+    mutateNotifs(updated, false);
     try {
       await Promise.all(unreadIds.map(id => markNotificationAsRead(id)));
-    } catch(e) {}
+      mutateNotifs();
+    } catch(e) {
+      mutateNotifs();
+    }
   }
 
   return (
@@ -167,7 +160,11 @@ function DashboardContent() {
                     </div>
                   </div>
 
-                  {/* Active Hackathon Alert */}
+                  {isLoadingData ? (
+                    <GridSkeleton count={2} type="project" />
+                  ) : (
+                    <>
+                      {/* Active Hackathon Alert */}
                   {myHackathons.map(h => (
                     <div key={h.id} className={styles.completeCard} style={{ background: 'var(--primary-dim)', borderColor: 'rgba(56, 189, 248, 0.2)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-5)' }}>
                       <div>
@@ -247,6 +244,8 @@ function DashboardContent() {
                       </div>
                     </div>
                   )}
+                    </>
+                  )}
                 </>
               )}
 
@@ -257,7 +256,8 @@ function DashboardContent() {
                     <h1 className={styles.pageTitle}>My Projects</h1>
                     <Link href="/dashboard/projects/new" className="btn btn-primary btn-sm"><Plus size={14} /> New project</Link>
                   </div>
-                  {projects.length === 0
+                  {isLoadingData ? <GridSkeleton count={2} type="project" /> :
+                   projects.length === 0
                     ? <div className="empty-state"><Layers size={40} className="empty-state__icon" /><p className="empty-state__title">No projects yet</p><Link href="/dashboard/projects/new" className="btn btn-primary btn-sm">Submit your first project</Link></div>
                     : projects.map(p => (
                       <div key={p.id} className={styles.subRow}>
@@ -289,7 +289,8 @@ function DashboardContent() {
                     <h1 className={styles.pageTitle}>My Ideas</h1>
                     <Link href="/dashboard/ideas/new" className="btn btn-primary btn-sm"><Plus size={14} /> New idea</Link>
                   </div>
-                  {ideas.length === 0
+                  {isLoadingData ? <GridSkeleton count={2} type="idea" /> :
+                   ideas.length === 0
                     ? <div className="empty-state"><Lightbulb size={40} className="empty-state__icon" /><p className="empty-state__title">No ideas yet</p><Link href="/dashboard/ideas/new" className="btn btn-primary btn-sm">Submit your first idea</Link></div>
                     : ideas.map(i => (
                       <div key={i.id} className={styles.subRow}>

@@ -80,6 +80,7 @@ export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Pr
           <button
             className={`${styles.statBtn} ${liked ? styles.liked : ''}`}
             onClick={() => onLike?.(idea.id)}
+            data-tooltip={liked ? "Unlike" : "Like"}
           >
             <Heart size={13} fill={liked ? 'currentColor' : 'none'} />
             {idea.likes?.length || 0}
@@ -87,6 +88,7 @@ export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Pr
           <button
             className={`${styles.statBtn} ${bookmarked ? styles.bookmarked : ''}`}
             onClick={() => onBookmark?.(idea.id)}
+            data-tooltip={bookmarked ? "Remove bookmark" : "Bookmark"}
           >
             <Bookmark size={13} fill={bookmarked ? 'currentColor' : 'none'} />
           </button>

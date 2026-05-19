@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
@@ -7,7 +7,8 @@ import Footer from '@/components/layout/Footer';
 import { getIdeaById, updateIdea } from '@/app/actions/ideas';
 import { getStudentProfileById } from '@/app/actions/users';
 import { useAuth } from '@/context/AuthContext';
-import { generateId } from '@/lib/security';
+import useSWR from 'swr';
+import { IdeaCardSkeleton } from '@/components/ui/Skeletons';
 import type { Idea, Comment } from '@/types';
 import { Eye, Heart, Bookmark, ArrowLeft, Send, ArrowRight, Tag, Flag } from 'lucide-react';
 import styles from './idea.module.css';
@@ -19,44 +20,51 @@ export default function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { role, userId, studentProfile } = useAuth();
-  const [idea, setIdea] = useState<any>(null);
-  const [comment, setComment] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [author, setAuthor] = useState<any>(null);
   const [commentAuthors, setCommentAuthors] = useState<Record<string, any>>({});
+  
+  const fetchIdeaDetails = useCallback(async () => {
+    const i = await getIdeaById(id);
+    if (!i) { router.replace('/explore?tab=ideas'); return null; }
+    if (i.visibility === 'admin-only' && !role) { router.replace('/login'); return null; }
+    
+    const views = (i.views || 0) + 1;
+    try { await updateIdea(id, { views }); } catch(e) {}
+    i.views = views;
 
-  useEffect(() => {
-    async function load() {
-      const i = await getIdeaById(id);
-      if (!i) { router.replace('/explore?tab=ideas'); return; }
-      if (i.visibility === 'admin-only' && !role) { router.replace('/login'); return; }
-      
-      const views = (i.views || 0) + 1;
-      await updateIdea(id, { views });
-      i.views = views;
-      setIdea(i);
-
-      if (i.authorId) {
-        const auth = await getStudentProfileById(i.authorId);
-        setAuthor(auth);
-      }
-
-      const commentsArr: any[] = Array.isArray(i.comments) ? i.comments as any[] : [];
-      const ca: Record<string, any> = {};
-      for (const c of commentsArr) {
-        if (c && !ca[c.authorId]) {
-          const cAuth = await getStudentProfileById(c.authorId);
-          if (cAuth) ca[c.authorId] = cAuth;
-        }
-      }
-      setCommentAuthors(ca);
-      
-      setLoading(false);
+    if (i.authorId) {
+      const auth = await getStudentProfileById(i.authorId);
+      setAuthor(auth);
     }
-    load();
+
+    const commentsArr: any[] = Array.isArray(i.comments) ? i.comments as any[] : [];
+    const ca: Record<string, any> = {};
+    for (const c of commentsArr) {
+      if (c && !ca[c.authorId]) {
+        const cAuth = await getStudentProfileById(c.authorId);
+        if (cAuth) ca[c.authorId] = cAuth;
+      }
+    }
+    setCommentAuthors(ca);
+    return i;
   }, [id, role, router]);
 
-  if (loading || !idea) return null;
+  const { data: idea, mutate: mutateIdea, isLoading } = useSWR(`idea-${id}`, fetchIdeaDetails);
+
+  if (isLoading) {
+    return (
+      <div className="page">
+        <Navbar />
+        <main className="main">
+          <div className="container" style={{ padding: 'var(--space-12) 0', maxWidth: '800px' }}>
+            <IdeaCardSkeleton />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!idea) return null;
 
   const liked = userId ? idea.likes?.includes(userId) : false;
   const bookmarked = userId ? idea.bookmarks?.includes(userId) : false;
@@ -66,23 +74,39 @@ export default function IdeaDetailPage() {
     if (!userId || !idea) return;
     const newLikes = liked ? (idea.likes || []).filter((x: string) => x !== userId) : [...(idea.likes || []), userId];
     const i = { ...idea, likes: newLikes };
-    setIdea(i);
-    await updateIdea(id, { likes: newLikes });
+    mutateIdea(i, false);
+    try {
+      await updateIdea(id, { likes: newLikes });
+      mutateIdea();
+    } catch(e) {
+      mutateIdea();
+    }
   }
   async function toggleBookmark() {
     if (!userId || !idea) return;
     const newBookmarks = bookmarked ? (idea.bookmarks || []).filter((x: string) => x !== userId) : [...(idea.bookmarks || []), userId];
     const i = { ...idea, bookmarks: newBookmarks };
-    setIdea(i);
-    await updateIdea(id, { bookmarks: newBookmarks });
+    mutateIdea(i, false);
+    try {
+      await updateIdea(id, { bookmarks: newBookmarks });
+      mutateIdea();
+    } catch(e) {
+      mutateIdea();
+    }
   }
   async function postComment() {
     if (!userId || !comment.trim() || !idea) return;
+    import { generateId } from '@/lib/security';
     const c: Comment = { id: generateId(), authorId: userId, content: comment.trim().slice(0, 2000), likes: [], replies: [], isReported: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     const newComments = [...(Array.isArray(idea.comments) ? idea.comments : []), c];
     const i = { ...idea, comments: newComments };
-    setIdea(i); setComment('');
-    await updateIdea(id, { comments: newComments });
+    mutateIdea(i, false); setComment('');
+    try {
+      await updateIdea(id, { comments: newComments });
+      mutateIdea();
+    } catch(e) {
+      mutateIdea();
+    }
     
     if (!commentAuthors[userId]) {
       const cAuth = await getStudentProfileById(userId);

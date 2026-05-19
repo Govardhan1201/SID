@@ -36,16 +36,16 @@ export default function StudentCard({ profile }: Props) {
         {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
 
         <div className={styles.skills}>
-          {profile.skills.slice(0, 4).map(s => (
+          {(profile.skills || []).slice(0, 4).map(s => (
             <span key={s} className={styles.skill}>{s}</span>
           ))}
-          {profile.skills.length > 4 && (
-            <span className={styles.skill}>+{profile.skills.length - 4}</span>
+          {(profile.skills || []).length > 4 && (
+            <span className={styles.skill}>+{(profile.skills || []).length - 4}</span>
           )}
         </div>
 
         <div className={styles.domains}>
-          {profile.domains.slice(0, 2).map(d => (
+          {(profile.domains || []).slice(0, 2).map(d => (
             <span key={d} className={styles.domain}>{d}</span>
           ))}
         </div>

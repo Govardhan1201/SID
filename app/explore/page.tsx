@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -11,6 +11,8 @@ import { getVisibleIdeas } from '@/app/actions/ideas';
 import { getAllStudentProfiles } from '@/app/actions/users';
 import { getAllTeams } from '@/app/actions/teams';
 import { useAuth } from '@/context/AuthContext';
+import useSWR from 'swr';
+import { GridSkeleton } from '@/components/ui/Skeletons';
 import type { Project, Idea, StudentProfile, Team } from '@/types';
 import { Search, SlidersHorizontal, Users, Layers, Lightbulb, User, X } from 'lucide-react';
 import styles from './explore.module.css';
@@ -36,22 +38,14 @@ function ExploreContent() {
   const [sort,        setSort]        = useState('latest');
   const [showFilters, setShowFilters] = useState(false);
 
-  const [projects,  setProjects]  = useState<Project[]>([]);
-  const [ideas,     setIdeas]     = useState<Idea[]>([]);
-  const [students,  setStudents]  = useState<StudentProfile[]>([]);
-  const [teams,     setTeams]     = useState<Team[]>([]);
-
   const visRole = role ?? 'public';
 
-  useEffect(() => {
-    async function loadData() {
-      setProjects(await getVisibleProjects(visRole as any) as unknown as Project[]);
-      setIdeas(await getVisibleIdeas(visRole as any) as unknown as Idea[]);
-      setStudents(await getAllStudentProfiles() as unknown as StudentProfile[]);
-      setTeams(await getAllTeams() as unknown as Team[]);
-    }
-    loadData();
-  }, [visRole]);
+  const { data: projects = [], mutate: mutateProjects, isLoading: loadingProjects } = useSWR(['projects', visRole], () => getVisibleProjects(visRole as any) as Promise<Project[]>);
+  const { data: ideas = [], mutate: mutateIdeas, isLoading: loadingIdeas } = useSWR(['ideas', visRole], () => getVisibleIdeas(visRole as any) as Promise<Idea[]>);
+  const { data: students = [], isLoading: loadingStudents } = useSWR('students', () => getAllStudentProfiles() as Promise<StudentProfile[]>);
+  const { data: teams = [], isLoading: loadingTeams } = useSWR('teams', () => getAllTeams() as Promise<Team[]>);
+
+  const isLoadingData = loadingProjects || loadingIdeas || loadingStudents || loadingTeams;
 
   // ── Like / Bookmark handlers ──────────────────────────────────────
   async function handleProjectLike(id: string) {
@@ -61,13 +55,18 @@ function ExploreContent() {
     const liked = p.likes?.includes(userId);
     const newLikes = liked ? (p.likes || []).filter(x => x !== userId) : [...(p.likes || []), userId];
     
-    setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, likes: newLikes } : proj));
+    mutateProjects(
+      projects.map(proj => proj.id === id ? { ...proj, likes: newLikes } : proj),
+      false // optimistic
+    );
     
     try {
       const { updateProject } = require('@/app/actions/projects');
       await updateProject(id, { likes: newLikes });
+      mutateProjects();
     } catch (e) {
       console.error(e);
+      mutateProjects(); // rollback
     }
   }
 
@@ -78,13 +77,18 @@ function ExploreContent() {
     const bookmarked = p.bookmarks?.includes(userId);
     const newBookmarks = bookmarked ? (p.bookmarks || []).filter(x => x !== userId) : [...(p.bookmarks || []), userId];
     
-    setProjects(prev => prev.map(proj => proj.id === id ? { ...proj, bookmarks: newBookmarks } : proj));
+    mutateProjects(
+      projects.map(proj => proj.id === id ? { ...proj, bookmarks: newBookmarks } : proj),
+      false
+    );
     
     try {
       const { updateProject } = require('@/app/actions/projects');
       await updateProject(id, { bookmarks: newBookmarks });
+      mutateProjects();
     } catch (e) {
       console.error(e);
+      mutateProjects();
     }
   }
 
@@ -95,13 +99,18 @@ function ExploreContent() {
     const liked = i.likes?.includes(userId);
     const newLikes = liked ? (i.likes || []).filter(x => x !== userId) : [...(i.likes || []), userId];
     
-    setIdeas(prev => prev.map(idea => idea.id === id ? { ...idea, likes: newLikes } : idea));
+    mutateIdeas(
+      ideas.map(idea => idea.id === id ? { ...idea, likes: newLikes } : idea),
+      false
+    );
     
     try {
       const { updateIdea } = require('@/app/actions/ideas');
       await updateIdea(id, { likes: newLikes });
+      mutateIdeas();
     } catch (e) {
       console.error(e);
+      mutateIdeas();
     }
   }
 
@@ -112,13 +121,18 @@ function ExploreContent() {
     const bookmarked = i.bookmarks?.includes(userId);
     const newBookmarks = bookmarked ? (i.bookmarks || []).filter(x => x !== userId) : [...(i.bookmarks || []), userId];
     
-    setIdeas(prev => prev.map(idea => idea.id === id ? { ...idea, bookmarks: newBookmarks } : idea));
+    mutateIdeas(
+      ideas.map(idea => idea.id === id ? { ...idea, bookmarks: newBookmarks } : idea),
+      false
+    );
     
     try {
       const { updateIdea } = require('@/app/actions/ideas');
       await updateIdea(id, { bookmarks: newBookmarks });
+      mutateIdeas();
     } catch (e) {
       console.error(e);
+      mutateIdeas();
     }
   }
 
@@ -222,6 +236,7 @@ function ExploreContent() {
           </div>
 
           {tab === 'projects' && (
+            isLoadingData ? <GridSkeleton count={6} type="project" /> :
             fp.length > 0
               ? <div className="grid-3">{fp.map(p =>
                   <ProjectCard
@@ -240,6 +255,7 @@ function ExploreContent() {
           )}
 
           {tab === 'ideas' && (
+            isLoadingData ? <GridSkeleton count={6} type="idea" /> :
             fi.length > 0
               ? <div className="grid-3">{fi.map(i =>
                   <IdeaCard
@@ -251,35 +267,38 @@ function ExploreContent() {
                   />
                 )}</div>
               : <div className="empty-state">
-                  <Lightbulb size={40} className="empty-state__icon" />
+                  <Search size={40} className="empty-state__icon" />
                   <p className="empty-state__title">No ideas found</p>
-                  <p className="empty-state__body">Try a different search.</p>
+                  <p className="empty-state__body">Try adjusting your search or filters.</p>
                 </div>
           )}
 
           {tab === 'students' && (
+            isLoadingData ? <GridSkeleton count={6} type="student" /> :
             fs.length > 0
               ? <div className="grid-4">{fs.map(s => <StudentCard key={s.userId} profile={s} />)}</div>
-              : <div className="empty-state"><User size={40} className="empty-state__icon" /><p className="empty-state__title">No students found</p></div>
+              : <div className="empty-state">
+                  <Users size={40} className="empty-state__icon" />
+                  <p className="empty-state__title">No students found</p>
+                </div>
           )}
 
           {tab === 'teams' && (
+            isLoadingData ? <GridSkeleton count={6} type="student" /> :
             ft.length > 0
               ? <div className="grid-3">{ft.map(t => (
-                  <Link key={t.id} href={`/team/${t.id}`} className="card card-hover" style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', textDecoration: 'none' }}>
-                    <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-                      <img src={t.avatar} alt={t.name} className="avatar avatar-md" />
-                      <div>
-                        <div style={{ fontWeight: 700, color: 'var(--text-1)', fontSize: 'var(--text-sm)' }}>{t.name}</div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{t.memberIds?.length || 0} members</div>
-                      </div>
-                      {t.isOpen && <span className="badge badge-success" style={{ marginLeft: 'auto' }}>Open</span>}
+                  <div key={t.id} className="card card-hover" style={{ padding: 'var(--space-5)' }}>
+                    <h3 style={{ marginBottom: 'var(--space-2)' }}>{t.name}</h3>
+                    <p style={{ color: 'var(--text-3)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)' }}>{t.description}</p>
+                    <div className="chip-list">
+                      {(t.rolesNeeded || t.skills || []).map((s: string) => <span key={s} className="chip">{s}</span>)}
                     </div>
-                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-3)', lineHeight: 1.5 }}>{t.description}</p>
-                    <div className="chip-list">{t.skills.slice(0, 4).map(s => <span key={s} className="chip">{s}</span>)}</div>
-                  </Link>
+                  </div>
                 ))}</div>
-              : <div className="empty-state"><Users size={40} className="empty-state__icon" /><p className="empty-state__title">No teams found</p></div>
+              : <div className="empty-state">
+                  <Users size={40} className="empty-state__icon" />
+                  <p className="empty-state__title">No teams found</p>
+                </div>
           )}
         </div>
       </main>
