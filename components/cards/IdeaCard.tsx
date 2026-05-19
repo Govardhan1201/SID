@@ -35,8 +35,8 @@ export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Pr
     load();
   }, [idea.authorId]);
 
-  const liked    = currentUserId ? idea.likes.includes(currentUserId)     : false;
-  const bookmarked = currentUserId ? idea.bookmarks.includes(currentUserId) : false;
+  const liked    = currentUserId ? idea.likes?.includes(currentUserId)     : false;
+  const bookmarked = currentUserId ? idea.bookmarks?.includes(currentUserId) : false;
 
   return (
     <article className={`card card-hover ${styles.card}`}>
@@ -52,11 +52,11 @@ export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Pr
         </Link>
         <p className={styles.summary}>{idea.summary}</p>
 
-        {idea.neededSkills.length > 0 && (
+        {(idea.rolesNeeded || idea.neededSkills || []).length > 0 && (
           <div className={styles.needs}>
             <span className={styles.needsLabel}>Looking for:</span>
             <div className="chip-list">
-              {idea.neededSkills.slice(0, 3).map(s => (
+              {(idea.rolesNeeded || idea.neededSkills || []).slice(0, 3).map((s: string) => (
                 <span key={s} className="chip">{s}</span>
               ))}
             </div>
@@ -82,7 +82,7 @@ export default function IdeaCard({ idea, onLike, onBookmark, currentUserId }: Pr
             onClick={() => onLike?.(idea.id)}
           >
             <Heart size={13} fill={liked ? 'currentColor' : 'none'} />
-            {idea.likes.length}
+            {idea.likes?.length || 0}
           </button>
           <button
             className={`${styles.statBtn} ${bookmarked ? styles.bookmarked : ''}`}

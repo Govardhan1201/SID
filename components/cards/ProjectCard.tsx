@@ -22,8 +22,8 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
     load();
   }, [project.authorId]);
   
-  const liked    = currentUserId ? project.likes.includes(currentUserId)     : false;
-  const bookmarked = currentUserId ? project.bookmarks.includes(currentUserId) : false;
+  const liked    = currentUserId ? project.likes?.includes(currentUserId)     : false;
+  const bookmarked = currentUserId ? project.bookmarks?.includes(currentUserId) : false;
 
   const statusColor = project.moderationStatus === 'featured' ? styles.featured
     : project.moderationStatus === 'approved' ? styles.approved : '';
@@ -51,11 +51,11 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
 
         {/* Tech stack */}
         <div className={styles.techRow}>
-          {project.techStack.slice(0, 4).map(t => (
+          {(project.techStack || []).slice(0, 4).map(t => (
             <span key={t} className={styles.techTag}>{t}</span>
           ))}
-          {project.techStack.length > 4 && (
-            <span className={styles.techTag}>+{project.techStack.length - 4}</span>
+          {(project.techStack || []).length > 4 && (
+            <span className={styles.techTag}>+{(project.techStack || []).length - 4}</span>
           )}
         </div>
 
@@ -70,9 +70,9 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
           </Link>
         )}
 
-        {project.teamMembers.length > 1 && (
+        {(project.teamMembers || []).length > 1 && (
           <div className={styles.teamRow}>
-            <Users size={11} /><span>{project.teamMembers.length} contributors</span>
+            <Users size={11} /><span>{(project.teamMembers || []).length} contributors</span>
           </div>
         )}
       </div>
@@ -87,7 +87,7 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
             aria-label="Like"
           >
             <Heart size={12} fill={liked ? 'currentColor' : 'none'} />
-            {project.likes.length}
+            {project.likes?.length || 0}
           </button>
           <button
             className={`${styles.statBtn} ${bookmarked ? styles.bookmarked : ''}`}
@@ -95,7 +95,7 @@ export default function ProjectCard({ project, onLike, onBookmark, currentUserId
             aria-label="Bookmark"
           >
             <Bookmark size={12} fill={bookmarked ? 'currentColor' : 'none'} />
-            {project.bookmarks.length}
+            {project.bookmarks?.length || 0}
           </button>
         </div>
         <div className={styles.links}>
