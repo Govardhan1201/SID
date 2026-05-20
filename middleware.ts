@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 // Routes accessible without login
 const PUBLIC_EXACT = ['/', '/login', '/signup', '/forgot-password', '/support'];
-const PUBLIC_PREFIXES = ['/explore', '/project/', '/idea/', '/legal/', '/profile/', '/hackathon/', '/teams'];
+const PUBLIC_PREFIXES = ['/explore', '/project/', '/idea/', '/legal/', '/profile/', '/hackathon/', '/teams', '/team/'];
 
 
 export function middleware(request: NextRequest) {

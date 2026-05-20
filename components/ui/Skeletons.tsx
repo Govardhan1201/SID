@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from '../cards/ProjectCard.module.css'; // Reuse card structures
 import ideaStyles from '../cards/IdeaCard.module.css';
+import studentStyles from '../cards/StudentCard.module.css';
 
 export function ProjectCardSkeleton() {
   return (
@@ -73,15 +74,37 @@ export function IdeaCardSkeleton() {
 
 export function StudentCardSkeleton() {
   return (
-    <article className="card" style={{ padding: 'var(--space-5)', display: 'flex', gap: 'var(--space-4)', height: '180px' }}>
-      <div className="skeleton avatar avatar-xl" />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div className="skeleton" style={{ width: '40%', height: '24px' }} />
-        <div className="skeleton" style={{ width: '60%', height: '14px' }} />
-        <div className="skeleton" style={{ width: '90%', height: '14px', marginTop: 'var(--space-2)' }} />
-        <div className="chip-list" style={{ marginTop: 'auto' }}>
-          <span className="skeleton" style={{ width: '50px', height: '20px', borderRadius: '4px' }} />
-          <span className="skeleton" style={{ width: '60px', height: '20px', borderRadius: '4px' }} />
+    <article className={`card ${studentStyles.card}`} style={{ height: '100%', minHeight: '300px' }}>
+      <div className={studentStyles.accentBar} style={{ background: 'var(--border-2)' }} />
+      <div className={studentStyles.body}>
+        <div className={studentStyles.top}>
+          <div className="skeleton avatar avatar-lg" />
+          <div className={studentStyles.info} style={{ flex: 1, paddingRight: 'var(--space-2)' }}>
+            <span className="skeleton" style={{ width: '80%', height: '16px', marginBottom: '4px' }} />
+            <span className="skeleton" style={{ width: '60%', height: '12px', marginBottom: '2px' }} />
+            <span className="skeleton" style={{ width: '70%', height: '12px' }} />
+          </div>
+        </div>
+        
+        <div className="skeleton" style={{ width: '100%', height: '12px', marginTop: 'var(--space-2)' }} />
+        <div className="skeleton" style={{ width: '90%', height: '12px', marginTop: '4px' }} />
+        
+        <div className={studentStyles.skills} style={{ marginTop: 'auto', paddingTop: 'var(--space-3)' }}>
+          <span className="skeleton" style={{ width: '50px', height: '18px', borderRadius: '4px' }} />
+          <span className="skeleton" style={{ width: '60px', height: '18px', borderRadius: '4px' }} />
+          <span className="skeleton" style={{ width: '45px', height: '18px', borderRadius: '4px' }} />
+        </div>
+        
+        <div className={studentStyles.domains} style={{ marginTop: 'var(--space-1)' }}>
+          <span className="skeleton" style={{ width: '70px', height: '18px', borderRadius: '4px' }} />
+        </div>
+      </div>
+      
+      <div className={studentStyles.footer}>
+        <span className="skeleton" style={{ width: '60px', height: '14px' }} />
+        <div className={studentStyles.socials}>
+          <span className="skeleton" style={{ width: '26px', height: '26px', borderRadius: '4px' }} />
+          <span className="skeleton" style={{ width: '26px', height: '26px', borderRadius: '4px' }} />
         </div>
       </div>
     </article>

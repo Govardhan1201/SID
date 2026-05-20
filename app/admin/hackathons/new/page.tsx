@@ -22,6 +22,7 @@ export default function NewHackathonPage() {
   const [name,        setName]        = useState('');
   const [tagline,     setTagline]     = useState('');
   const [description, setDescription] = useState('');
+  const [registrationLink, setRegistrationLink] = useState('');
   const [deadline,    setDeadline]    = useState('');
   const [judgePass,   setJudgePass]   = useState('');
   const [tracks,      setTracks]      = useState<HackathonTrack[]>([emptyTrack()]);
@@ -60,6 +61,7 @@ export default function NewHackathonPage() {
         name:             name.trim(),
         tagline:          tagline.trim(),
         description:      description.trim(),
+        registrationLink: registrationLink.trim(),
         banner:           'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80',
         tracks,
         deadline,
@@ -109,6 +111,12 @@ export default function NewHackathonPage() {
               <label className="label">Description</label>
               <textarea className="textarea" value={description} onChange={e => setDescription(e.target.value)}
                 placeholder="What is this hackathon about? Who can participate? What's the prize?" rows={4} />
+            </div>
+            <div className="field">
+              <label className="label">External Registration Link (Optional)</label>
+              <input className="input" value={registrationLink} onChange={e => setRegistrationLink(e.target.value)}
+                placeholder="e.g., https://devfolio.co/..." />
+              <p className="hint">If provided, users will be redirected here to register instead of forming teams on IdeaForge.</p>
             </div>
           </section>
 

@@ -49,11 +49,11 @@ export default function TeamPage() {
       setTeamIdeas(iData.filter(Boolean));
 
       const profiles: Record<string, any> = {};
-      const membersArr = Array.isArray((t as any).members) ? (t as any).members : [];
-      for (const m of membersArr) {
-        if (!profiles[m.userId]) {
-          const s = await getStudentProfileById(m.userId);
-          if (s) profiles[m.userId] = s;
+      const membersArr = Array.isArray((t as any).memberIds) ? (t as any).memberIds : [];
+      for (const mId of membersArr) {
+        if (!profiles[mId]) {
+          const s = await getStudentProfileById(mId);
+          if (s) profiles[mId] = s;
         }
       }
       setMemberProfiles(profiles);
@@ -65,8 +65,8 @@ export default function TeamPage() {
 
   if (loading || !team) return null;
 
-  const membersArr = Array.isArray((team as any).members) ? (team as any).members : [];
-  const isMember = userId ? membersArr.some((m: any) => m.userId === userId) : false;
+  const membersArr = Array.isArray((team as any).memberIds) ? (team as any).memberIds : [];
+  const isMember = userId ? membersArr.includes(userId) : false;
 
   return (
     <div className="page">
@@ -119,6 +119,19 @@ export default function TeamPage() {
                   <UserPlus size={14} /> Request to join
                 </button>
               )}
+              {!team.isOpen && !isMember && userId && (
+                <span className="badge badge-neutral">Invite Only</span>
+              )}
+              {isMember && userId && (
+                <button className="btn btn-secondary btn-sm" disabled>
+                  Already joined
+                </button>
+              )}
+              {userId === team.leaderId && (
+                <button className="btn btn-primary btn-sm" style={{ marginLeft: 'var(--space-2)' }} onClick={() => alert('Invite link copied to clipboard! (demo)')}>
+                  <UserPlus size={14} /> Invite Member
+                </button>
+              )}
             </div>
 
             {/* Leader card */}
@@ -155,15 +168,15 @@ export default function TeamPage() {
           )}
           {tab === 'members' && (
             <div className="grid-3">
-              {membersArr.map((m: any) => {
-                const s = memberProfiles[m.userId];
+              {membersArr.map((mId: string) => {
+                const s = memberProfiles[mId];
                 if (!s) return null;
                 return (
-                  <Link key={m.userId} href={`/profile/${m.userId}`} className="card card-hover" style={{ padding: 'var(--space-5)', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                  <Link key={mId} href={`/profile/${mId}`} className="card card-hover" style={{ padding: 'var(--space-5)', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
                     <img src={s.avatar} alt={s.name} className="avatar avatar-md" />
                     <div>
                       <div style={{ fontWeight: 700, color: 'var(--text-1)', fontSize: 'var(--text-sm)' }}>{s.name}</div>
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)' }}>{m.role}</div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)' }}>{mId === team.leaderId ? 'Leader' : 'Member'}</div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-4)' }}>{s.college}</div>
                     </div>
                   </Link>

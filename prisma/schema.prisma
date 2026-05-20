@@ -73,6 +73,7 @@ model Hackathon {
   description       String                  @default("")
   banner            String                  @default("")
   deadline          DateTime
+  registrationLink  String                  @default("")
   status            String
   judgeToken        String                  @unique
   judgePasswordHash String

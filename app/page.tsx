@@ -282,6 +282,11 @@ export default function LandingPage() {
               <Link href="/login">Sign in</Link>
               <Link href="/signup">Get started</Link>
             </div>
+            <div className={styles.footerLinks}>
+              <a href="https://github.com/Govardhan1201" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a href="https://x.com/Govardhan1201" target="_blank" rel="noopener noreferrer">X</a>
+              <a href="https://www.linkedin.com/in/govardhan1201" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
           </div>
           <p className={styles.footerCopy}>© {new Date().getFullYear()} IdeaForge. All rights reserved.</p>
         </div>

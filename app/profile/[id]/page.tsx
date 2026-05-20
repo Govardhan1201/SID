@@ -33,15 +33,19 @@ export default function ProfilePage() {
   const { userId, role } = useAuth();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [ideas, setIdeas] = useState<Idea[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [tab, setTab] = useState<ProfileTab>('projects');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
     async function loadData() {
+      setIsLoadingProfile(true);
       const p = await getStudentProfileById(id);
-      if (!p) return;
+      if (!p) {
+        setIsLoadingProfile(false);
+        return;
+      }
       setProfile(p as unknown as StudentProfile);
 
       const visRole = role ?? 'public';
@@ -61,8 +65,8 @@ export default function ProfilePage() {
       }) as unknown as Idea[]);
       
       setTeams(await getTeamsByUserId(id) as unknown as Team[]);
-
       if (userId) setIsFollowing(p.followers.includes(userId));
+      setIsLoadingProfile(false);
     }
     loadData();
   }, [id, userId, role]);
@@ -80,7 +84,14 @@ export default function ProfilePage() {
     } catch(e) {}
   }
 
-  if (!profile) return (
+  if (isLoadingProfile) return (
+    <div className="page"><Navbar />
+      <main className="main"><div className="container" style={{ paddingTop: 'var(--space-16)' }}>
+        <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}>Loading profile...</div>
+      </div></main><Footer /></div>
+  );
+
+  if (!profile && !isLoadingProfile) return (
     <div className="page"><Navbar />
       <main className="main"><div className="container" style={{ paddingTop: 'var(--space-16)' }}>
         <div className="empty-state"><p className="empty-state__title">Profile not found</p><Link href="/explore?tab=students" className="btn btn-primary btn-sm">Browse students</Link></div>

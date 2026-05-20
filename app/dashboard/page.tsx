@@ -334,13 +334,17 @@ function DashboardContent() {
                           <p>{n.message}</p>
                           <span className={styles.notifTime}>{new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                        <Link
-                          href={n.link}
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => markRead(n.id)}
-                        >
-                          View
-                        </Link>
+                        {n.link ? (
+                          <Link
+                            href={n.link.startsWith('/') || n.link.startsWith('http') ? n.link : `/${n.link}`}
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => markRead(n.id)}
+                          >
+                            View
+                          </Link>
+                        ) : (
+                          <button className="btn btn-ghost btn-sm" style={{ opacity: 0, pointerEvents: 'none' }}>View</button>
+                        )}
                         {!n.isRead && (
                           <button className="btn btn-ghost btn-sm" onClick={() => markRead(n.id)} title="Mark as read">
                             <Check size={13} />

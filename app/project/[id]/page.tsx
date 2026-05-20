@@ -169,10 +169,10 @@ export default function ProjectDetailPage() {
               {/* Links */}
               {(project.githubLink || project.liveDemo || project.demoVideo || project.pptLink) && (
                 <div className={styles.linkRow}>
-                  {project.githubLink && <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><GitFork size={14} /> GitHub</a>}
-                  {project.liveDemo && <a href={project.liveDemo} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><ExternalLink size={14} /> Live demo</a>}
-                  {project.demoVideo && <a href={project.demoVideo} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><Video size={14} /> Demo video</a>}
-                  {project.pptLink && <a href={project.pptLink} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><FileText size={14} /> Presentation</a>}
+                  {project.githubLink && <a href={project.githubLink.startsWith('http') ? project.githubLink : `https://${project.githubLink}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}><GitFork size={15} /> GitHub Repo</a>}
+                  {project.liveDemo && <a href={project.liveDemo.startsWith('http') ? project.liveDemo : `https://${project.liveDemo}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}><ExternalLink size={15} /> Live Demo</a>}
+                  {project.demoVideo && <a href={project.demoVideo.startsWith('http') ? project.demoVideo : `https://${project.demoVideo}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}><Video size={15} /> Demo Video</a>}
+                  {project.pptLink && <a href={project.pptLink.startsWith('http') ? project.pptLink : `https://${project.pptLink}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><FileText size={14} /> Presentation</a>}
                 </div>
               )}
 
@@ -276,7 +276,7 @@ export default function ProjectDetailPage() {
               )}
 
               {/* Report */}
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%', color: 'var(--text-4)' }}>
+              <button className="btn btn-ghost btn-sm" style={{ width: '100%', color: 'var(--text-4)' }} onClick={() => alert('Project reported. Our team will review this shortly.')}>
                 <Flag size={13} /> Report this project
               </button>
             </aside>

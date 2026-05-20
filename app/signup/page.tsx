@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { checkPasswordStrength, checkRateLimit } from '@/lib/security';
-import { Layers, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Layers, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
 import styles from '../auth.module.css';
 
 function SignupForm() {
@@ -44,6 +44,9 @@ function SignupForm() {
 
   return (
     <div className={styles.page}>
+      <Link href="/" className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '1rem', left: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-3)' }}>
+        <ArrowLeft size={16} /> Back to home
+      </Link>
       <div className={styles.card}>
         <Link href="/" className={styles.logo}><Layers size={20} strokeWidth={2.5} /><span>IdeaForge</span></Link>
         <h1 className={styles.heading}>Create your account</h1>

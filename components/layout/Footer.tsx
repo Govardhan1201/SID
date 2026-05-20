@@ -15,9 +15,9 @@ export default function Footer() {
             Where engineering students showcase what they built<br />and recruiters find who built it.
           </p>
           <div className={styles.social}>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitFork size={16} /></a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><X size={16} /></a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><Link2 size={16} /></a>
+            <a href="https://github.com/Govardhan1201" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitFork size={16} /></a>
+            <a href="https://x.com/Govardhan1201" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><X size={16} /></a>
+            <a href="https://www.linkedin.com/in/govardhan1201" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><Link2 size={16} /></a>
           </div>
         </div>
 

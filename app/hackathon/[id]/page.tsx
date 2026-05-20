@@ -295,14 +295,24 @@ export default function HackathonPublicPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
 
-              {!userId && hackathon.status !== 'completed' && (
+              {hackathon.registrationLink ? (
                 <div className="card" style={{ padding: 'var(--space-6)', background: 'var(--primary-dim)', borderColor: 'rgba(56, 189, 248, 0.2)' }}>
-                  <h3 className={styles.sideTitle} style={{ color: 'var(--primary)' }}>Are you a participant?</h3>
+                  <h3 className={styles.sideTitle} style={{ color: 'var(--primary)' }}>Register Now</h3>
                   <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginBottom: 'var(--space-4)' }}>
-                    Log in with your email to view your team and submit your project.
+                    Registration for this hackathon is handled externally.
                   </p>
-                  <Link href="/login" className="btn btn-primary" style={{ width: '100%' }}>Log In</Link>
+                  <a href={hackathon.registrationLink.startsWith('http') ? hackathon.registrationLink : `https://${hackathon.registrationLink}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: '100%' }}>Register Externally <ArrowRight size={15} style={{ marginLeft: 6 }} /></a>
                 </div>
+              ) : (
+                !userId && hackathon.status !== 'completed' && (
+                  <div className="card" style={{ padding: 'var(--space-6)', background: 'var(--primary-dim)', borderColor: 'rgba(56, 189, 248, 0.2)' }}>
+                    <h3 className={styles.sideTitle} style={{ color: 'var(--primary)' }}>Are you a participant?</h3>
+                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginBottom: 'var(--space-4)' }}>
+                      Log in with your email to view your team and submit your project.
+                    </p>
+                    <Link href="/login" className="btn btn-primary" style={{ width: '100%' }}>Log In</Link>
+                  </div>
+                )
               )}
             </aside>
           </div>

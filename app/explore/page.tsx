@@ -144,9 +144,9 @@ function ExploreContent() {
     list.sort((a: any, b: any) => {
       if (a.isFeatured && !b.isFeatured) return -1;
       if (!a.isFeatured && b.isFeatured) return 1;
-      if (sort === 'popular') return (b.views || 0) - (a.views || 0);
-      if (sort === 'liked') return (b.likes?.length || 0) - (a.likes?.length || 0);
-      if (sort === 'bookmarked') return (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0);
+      if (sort === 'popular') return (b.views || 0) - (a.views || 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sort === 'liked') return (b.likes?.length || 0) - (a.likes?.length || 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sort === 'bookmarked') return (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
     return list;
@@ -159,9 +159,9 @@ function ExploreContent() {
     list.sort((a: any, b: any) => {
       if (a.isFeatured && !b.isFeatured) return -1;
       if (!a.isFeatured && b.isFeatured) return 1;
-      if (sort === 'popular') return (b.views || 0) - (a.views || 0);
-      if (sort === 'liked') return (b.likes?.length || 0) - (a.likes?.length || 0);
-      if (sort === 'bookmarked') return (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0);
+      if (sort === 'popular') return (b.views || 0) - (a.views || 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sort === 'liked') return (b.likes?.length || 0) - (a.likes?.length || 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sort === 'bookmarked') return (b.bookmarks?.length || 0) - (a.bookmarks?.length || 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
     return list;

@@ -44,7 +44,7 @@ export async function getParticipantsByHackathon(hackathonId: string) {
 
 // ── CREATE / UPDATE ACTIONS ──────────────────────────────────────────────────
 
-export async function createHackathon(data: Omit<Hackathon, 'id' | 'createdAt' | 'updatedAt'>) {
+export async function createHackathon(data: Omit<Hackathon, 'id' | 'createdAt' | 'updatedAt'> & { registrationLink?: string }) {
   const h = await prisma.hackathon.create({
     data: {
       name: data.name,
@@ -56,6 +56,7 @@ export async function createHackathon(data: Omit<Hackathon, 'id' | 'createdAt' |
       judgeToken: data.judgeToken,
       judgePasswordHash: data.judgePasswordHash,
       createdBy: data.createdBy,
+      registrationLink: data.registrationLink || '',
       tracks: {
         create: data.tracks.map(t => ({
           name: t.name,
