@@ -1,13 +1,13 @@
 .header {
   position: sticky; top: 16px; z-index: 100;
   max-width: 1000px; margin: 0 auto 16px auto;
-  background: rgba(15, 18, 29, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  background: rgba(19, 24, 38, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 1px 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   height: 64px;
-  border-radius: var(--radius-full);
+  border-radius: 50px;
   flex-shrink: 0;
   transition: all var(--duration) var(--ease);
 }

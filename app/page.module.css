@@ -8,19 +8,18 @@
 
 /* ── Navbar ─────────────────────────────────────────────────────────── */
 .nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(7,11,20,0.92);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  height: 60px;
+  position: sticky; top: 24px; z-index: 100;
+  max-width: 1000px; margin: 0 auto;
+  background: rgba(19, 24, 38, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  height: 64px;
+  border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 1px 1px 0 rgba(255, 255, 255, 0.05);
 }
 .navInner {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  gap: var(--space-6);
+  display: flex; align-items: center; height: 100%; gap: var(--space-6); padding: 0 var(--space-5);
 }
 .logo {
   display: flex;
@@ -111,16 +110,16 @@
 .heroBadge svg { color: var(--primary); }
 
 .heroTitle {
-  font-size: clamp(3rem, 7vw, 5rem);
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
   font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.05em;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
   color: #fff;
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0 40px rgba(168, 85, 247, 0.4);
   text-transform: uppercase;
 }
 .heroAccent {
-  background: linear-gradient(135deg, #c084fc 0%, #ec4899 50%, #06b6d4 100%);
+  background: linear-gradient(90deg, #ec4899, #a855f7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

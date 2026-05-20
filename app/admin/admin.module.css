@@ -1,33 +1,35 @@
-.layout { display: grid; grid-template-columns: 80px 1fr; gap: var(--space-8); align-items: start; }
+.layout { display: grid; grid-template-columns: 90px 1fr; gap: var(--space-8); align-items: start; }
 .sidebar {
   position: sticky; top: 100px;
-  background: rgba(15, 18, 29, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-full); padding: var(--space-4) 0;
+  background: rgba(19, 24, 38, 0.8); border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-xl); padding: var(--space-6) 0;
   display: flex; flex-direction: column; align-items: center; gap: var(--space-6);
-  backdrop-filter: blur(40px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(6, 182, 212, 0.1);
+  backdrop-filter: blur(24px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 1px 1px 0 rgba(255,255,255,0.05);
+  /* Nexus active item styling would apply here if we had active classes */
 }
 .sidebar span { display: none; /* Icon-focused HUD */ }
-.adminBadge { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: var(--primary-dim); color: var(--primary); box-shadow: 0 0 20px var(--primary); margin-bottom: var(--space-2); font-size: 0; }
+.adminBadge { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; background: rgba(6, 182, 212, 0.1); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.3), 0 0 15px rgba(6, 182, 212, 0.2); margin-bottom: var(--space-4); font-size: 0; position: relative; }
+.adminBadge::before { content: ''; position: absolute; left: -16px; top: 10%; height: 80%; width: 3px; background: var(--accent); border-radius: 4px; box-shadow: 0 0 10px var(--accent); }
 .adminBadge svg { width: 24px; height: 24px; }
 .content { display: flex; flex-direction: column; gap: var(--space-8); min-width: 0; }
-.pageTitle { font-size: 3rem; font-weight: 900; letter-spacing: -0.05em; color: #fff; text-shadow: 0 0 40px rgba(168, 85, 247, 0.4); text-transform: uppercase; }
-.section { display: flex; flex-direction: column; gap: var(--space-4); position: relative; }
+.pageTitle { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: var(--space-3); }
+.pageTitle::after { content: 'STATUS'; color: var(--accent); font-weight: 300; }
 .sectionTitle { font-size: var(--text-lg); font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: var(--space-2); text-transform: uppercase; letter-spacing: 0.1em; }
 .domainList { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
-.domainRow { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-5); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); backdrop-filter: blur(20px); }
+.domainRow { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); background: rgba(19, 24, 38, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-lg); backdrop-filter: blur(24px); box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 30px rgba(0,0,0,0.5); }
 .domainName { font-size: var(--text-sm); color: var(--text-2); font-weight: 600; }
-.domainBar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-full); overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
-.domainFill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: var(--radius-full); box-shadow: 0 0 15px var(--accent); }
-.domainCount { font-size: var(--text-xs); color: var(--primary-l); text-align: right; font-family: var(--font-mono); font-weight: 700; }
+.domainBar { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-full); overflow: hidden; position: relative; }
+.domainFill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, var(--accent), var(--neon-pink)); border-radius: var(--radius-full); box-shadow: 0 0 15px var(--accent); }
+.domainCount { font-size: var(--text-xl); color: #fff; font-family: var(--font-mono); font-weight: 800; letter-spacing: -0.05em; }
 .featuredList { display: flex; flex-direction: column; gap: var(--space-3); }
-.featuredRow { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-lg); gap: var(--space-4); transition: all var(--duration) var(--ease); }
-.featuredRow:hover { border-color: var(--primary); box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.2), 0 0 30px rgba(168, 85, 247, 0.3); transform: translateX(4px); }
+.featuredRow { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); background: rgba(19, 24, 38, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-lg); gap: var(--space-4); transition: all var(--duration) var(--ease); box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 30px rgba(0,0,0,0.5); }
+.featuredRow:hover { border-color: var(--accent); box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.1), 0 0 30px rgba(6, 182, 212, 0.2); transform: translateX(4px); }
 .featuredTitle { font-size: var(--text-sm); font-weight: 700; color: var(--text-1); }
-.featuredTitle:hover { color: var(--primary-l); }
-.modCard { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-xl); padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); transition: all var(--duration) var(--ease); position: relative; overflow: hidden; }
-.modCard::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); box-shadow: 0 0 20px var(--accent); opacity: 0; transition: opacity var(--duration) var(--ease); }
+.featuredTitle:hover { color: var(--accent-l); }
+.modCard { background: rgba(19, 24, 38, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-lg); padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); transition: all var(--duration) var(--ease); position: relative; overflow: hidden; box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 30px rgba(0,0,0,0.5); }
+.modCard::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent); box-shadow: 0 0 15px var(--accent); opacity: 0; transition: opacity var(--duration) var(--ease); }
 .modCard:hover::before { opacity: 1; }
-.modCard:hover { background: rgba(255,255,255,0.05); border-color: rgba(6, 182, 212, 0.3); box-shadow: inset 0 0 40px rgba(6, 182, 212, 0.1); transform: translateY(-4px); }
+.modCard:hover { border-color: rgba(6, 182, 212, 0.3); box-shadow: inset 0 0 40px rgba(6, 182, 212, 0.1), 0 10px 40px rgba(0,0,0,0.6); transform: translateY(-4px); }
 .modInfo { display: flex; flex-direction: column; gap: var(--space-1); }
 .modTitle { font-size: var(--text-base); font-weight: 800; color: #fff; }
 .modTitle:hover { color: var(--primary-l); }
