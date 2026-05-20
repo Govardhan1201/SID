@@ -1,0 +1,98 @@
+.stepGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin-top: var(--space-12);
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.stepRowReverse {
+  flex-direction: row-reverse;
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepNumber {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-dim);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-6);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.stepContent h3 {
+  font-size: 2rem;
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.02em;
+}
+
+.stepContent p {
+  font-size: 1.1rem;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+}
+
+.stepContent ul {
+  list-style: disc;
+  padding-left: var(--space-6);
+  color: var(--text-3);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.stepContent ul li {
+  margin-bottom: var(--space-2);
+}
+
+.stepImageWrapper {
+  flex: 1.2;
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--border);
+  background: var(--bg-2);
+}
+
+.stepImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.stepImageWrapper:hover .stepImage {
+  transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+  .stepRow,
+  .stepRowReverse {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-8);
+  }
+
+  .stepContent ul {
+    text-align: left;
+  }
+
+  .stepNumber {
+    margin: 0 auto var(--space-6);
+  }
+}
