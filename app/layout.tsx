@@ -35,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={inter.className}>
+        <div className="bg-mesh"></div>
         <AuthProvider>
           <NotificationProvider>
             <PageTransition />

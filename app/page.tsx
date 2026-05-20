@@ -159,9 +159,9 @@ export default function LandingPage() {
             <h2 className={styles.sectionTitle}>Everything you need to get noticed</h2>
             <p className={styles.sectionSub}>Built for students who build. Not for students who just list courses on a resume.</p>
           </div>
-          <div className={styles.featureGrid}>
-            {FEATURES.map((f) => (
-              <div key={f.title} className={styles.featureCard}>
+          <div className="bento-grid">
+            {FEATURES.map((f, i) => (
+              <div key={f.title} className={`${styles.featureCard} glass-panel ${i === 0 ? 'bento-col-2 bento-row-2' : ''} ${i === 3 ? 'bento-col-2' : ''}`}>
                 <div className={styles.featureIcon}>{f.icon}</div>
                 <h3 className={styles.featureTitle}>{f.title}</h3>
                 <p className={styles.featureDesc}>{f.desc}</p>
