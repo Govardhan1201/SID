@@ -56,5 +56,3 @@ The database is heavily relational. Key models include:
 - **Context Providers:** Global state (Auth, Notifications) is managed via React Context (`context/AuthContext.tsx`, `context/NotificationContext.tsx`).
 - **Optimistic Updates:** UI often updates immediately before the server responds to ensure a snappy user experience (especially visible in the messaging and liking systems).
 
----
-*End of AI Context Document.*
