@@ -105,13 +105,13 @@ function MessagesContent() {
           
           {/* Sidebar */}
           <div className="card" style={{ width: '320px', display: 'flex', flexDirection: 'column', background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)' }}>
-            <div style={{ padding: 'var(--space-5)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ padding: 'var(--space-5)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', flexShrink: 0 }}>
               <h1 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 <MessageSquare size={20} className="text-primary" /> Messages
               </h1>
             </div>
             
-            <div style={{ overflowY: 'auto', flex: 1, padding: 'var(--space-2)' }}>
+            <div style={{ overflowY: 'auto', flex: 1, padding: 'var(--space-2)', minHeight: 0 }}>
               {conversations.length === 0 ? (
                 <div style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--text-3)', fontSize: '0.9rem' }}>
                   No conversations yet.
@@ -165,7 +165,7 @@ function MessagesContent() {
             {activePartnerId ? (
               <>
                 {/* Chat Header */}
-                <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', background: 'rgba(0, 0, 0, 0.2)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', background: 'rgba(0, 0, 0, 0.2)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexShrink: 0 }}>
                   {activePartner?.partnerAvatar ? (
                     <img src={activePartner.partnerAvatar} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
@@ -180,7 +180,7 @@ function MessagesContent() {
                 </div>
 
                 {/* Messages List */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: 0 }}>
                   {messages.map((msg: any) => {
                     const isMe = msg.senderId === userId;
                     return (
@@ -210,7 +210,7 @@ function MessagesContent() {
                 </div>
 
                 {/* Input Area */}
-                <div style={{ padding: 'var(--space-4) var(--space-6)', background: 'rgba(0, 0, 0, 0.2)', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ padding: 'var(--space-4) var(--space-6)', background: 'rgba(0, 0, 0, 0.2)', borderTop: '1px solid rgba(255, 255, 255, 0.05)', flexShrink: 0 }}>
                   <form onSubmit={handleSend} style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
                     <input 
                       type="text" 
