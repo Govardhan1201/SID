@@ -12,12 +12,14 @@ import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const { isAuthenticated, role, userId, studentProfile, recruiterProfile, logout } = useAuth();
-  const { unreadCount: unread } = useNotifications();
+  const { notifications, unreadCount: unread, markRead, markAllRead } = useNotifications();
   const pathname = usePathname();
   const router   = useRouter();
   const [menuOpen,    setMenuOpen]    = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   const displayName = studentProfile?.name ?? recruiterProfile?.name ?? 'Account';
   const avatarSrc   = studentProfile?.avatar ?? recruiterProfile?.logo ?? '';
@@ -26,12 +28,13 @@ export default function Navbar() {
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  useEffect(() => { setMenuOpen(false); setProfileOpen(false); }, [pathname]);
+  useEffect(() => { setMenuOpen(false); setProfileOpen(false); setNotifOpen(false); }, [pathname]);
 
   function handleLogout() { logout(); router.push('/'); }
 
@@ -84,11 +87,77 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Bell — links directly to notifications tab */}
-              <Link href="/dashboard?tab=notifications" className={styles.iconBtn} aria-label="Notifications">
-                <Bell size={15} />
-                {unread > 0 && <span className={styles.badge}>{unread > 9 ? '9+' : unread}</span>}
-              </Link>
+              {/* Bell — links directly to notifications tab or shows dropdown */}
+              <div ref={notifRef} className={styles.profileMenu}>
+                <button 
+                  className={styles.iconBtn} 
+                  aria-label="Notifications" 
+                  onClick={() => setNotifOpen(o => !o)}
+                  style={{ position: 'relative' }}
+                >
+                  <Bell size={15} />
+                  {unread > 0 && <span className={styles.badge}>{unread > 9 ? '9+' : unread}</span>}
+                </button>
+
+                {notifOpen && (
+                  <div className={styles.dropdown} style={{ width: '320px', right: '-10px', padding: 0 }} role="menu">
+                    <div className={styles.dropdownHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
+                      <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>Notifications</h3>
+                      {unread > 0 && (
+                        <button onClick={() => markAllRead()} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.8rem', cursor: 'pointer' }}>
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-3)', fontSize: '0.9rem' }}>
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <div 
+                            key={n.id} 
+                            style={{ 
+                              padding: '12px 16px', 
+                              borderBottom: '1px solid var(--border)',
+                              background: n.isRead ? 'transparent' : 'var(--bg-3)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '4px',
+                              transition: 'background 0.2s'
+                            }}
+                            onClick={() => {
+                              if (!n.isRead) markRead(n.id);
+                              if (n.link) {
+                                router.push(n.link);
+                                setNotifOpen(false);
+                              }
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <strong style={{ fontSize: '0.9rem', color: n.isRead ? 'var(--text-2)' : 'var(--text-1)' }}>{n.title}</strong>
+                              {!n.isRead && <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', marginTop: 4 }}></span>}
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-3)' }}>{n.message}</p>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-4)', marginTop: 4 }}>
+                              {new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    <div style={{ padding: '8px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+                      <Link href="/dashboard?tab=notifications" onClick={() => setNotifOpen(false)} style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none' }}>
+                        View all
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Profile */}
               <div ref={profileRef} className={styles.profileMenu}>

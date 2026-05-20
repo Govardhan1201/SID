@@ -175,6 +175,7 @@ export interface Comment {
 export interface Notification {
   id: string;
   userId: string;
+  title: string;
   type: 'like' | 'comment' | 'follow' | 'invite' | 'submission' | 'mention' | 'bookmark' | 'message';
   message: string;
   link: string;
