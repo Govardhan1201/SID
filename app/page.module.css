@@ -73,43 +73,58 @@
   position: relative;
   padding: var(--space-20) 0 var(--space-16);
   overflow: hidden;
+  background: radial-gradient(ellipse at top center, rgba(168, 85, 247, 0.15) 0%, transparent 60%);
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.05"/></svg>');
+  pointer-events: none;
 }
 .heroInner {
   display: grid;
-  grid-template-columns: 1fr 480px;
+  grid-template-columns: 1fr;
   gap: var(--space-12);
   align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 10;
 }
-.heroContent { display: flex; flex-direction: column; gap: var(--space-5); }
+.heroContent { display: flex; flex-direction: column; align-items: center; gap: var(--space-6); max-width: 800px; margin: 0 auto; }
 
 .heroBadge {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 4px 12px;
-  background: var(--primary-dim);
-  border: 1px solid rgba(56,189,248,0.25);
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(168, 85, 247, 0.4);
   border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--primary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--primary-l);
   font-family: var(--font-mono);
-  width: fit-content;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+  backdrop-filter: blur(10px);
 }
 .heroBadge svg { color: var(--primary); }
 
 .heroTitle {
-  font-size: clamp(2.4rem, 5vw, 3.75rem);
+  font-size: clamp(3rem, 7vw, 5rem);
   font-weight: 900;
   line-height: 1.05;
-  letter-spacing: -0.04em;
-  color: var(--text-1);
+  letter-spacing: -0.05em;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
 }
 .heroAccent {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  background: linear-gradient(135deg, #c084fc 0%, #ec4899 50%, #06b6d4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: none;
 }
 
 .heroSub {
@@ -235,26 +250,40 @@
 .featureGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 .featureCard {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  transition: border-color var(--duration-md) var(--ease), transform var(--duration-md) var(--ease);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 2px solid rgba(168, 85, 247, 0.5); /* Glowing top border */
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 20px 40px rgba(168, 85, 247, 0.05);
+  transition: all var(--duration-md) var(--ease);
+  position: relative;
+  overflow: hidden;
 }
-.featureCard:hover { border-color: var(--border-3); transform: translateY(-2px); }
+.featureCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 2px;
+  background: var(--primary);
+  box-shadow: 0 0 20px var(--primary);
+}
+.featureCard:hover { border-color: rgba(255, 255, 255, 0.2); transform: translateY(-4px); box-shadow: inset 0 20px 40px rgba(168, 85, 247, 0.1), 0 20px 40px rgba(0, 0, 0, 0.5); }
 .featureIcon {
-  width: 40px; height: 40px;
-  background: var(--primary-dim);
-  border: 1px solid rgba(56,189,248,0.2);
-  border-radius: var(--radius);
+  width: 48px; height: 48px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: var(--radius-lg);
   display: flex; align-items: center; justify-content: center;
-  color: var(--primary);
-  margin-bottom: var(--space-4);
+  color: var(--primary-l);
+  margin-bottom: var(--space-5);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
 }
-.featureTitle { font-size: var(--text-base); font-weight: 700; color: var(--text-1); margin-bottom: var(--space-2); }
+.featureTitle { font-size: var(--text-lg); font-weight: 800; color: #fff; margin-bottom: var(--space-3); }
 .featureDesc  { font-size: var(--text-sm); color: var(--text-3); line-height: 1.65; }
 
 /* ── Domains ──────────────────────────────────────────────────────────── */

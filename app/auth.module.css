@@ -1,18 +1,65 @@
 .page {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+}
+
+.leftPane {
+  background: radial-gradient(circle at 30% 70%, rgba(168, 85, 247, 0.4) 0%, transparent 50%),
+              radial-gradient(circle at 70% 30%, rgba(6, 182, 212, 0.4) 0%, transparent 50%),
+              url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.1"/></svg>'),
+              #05050a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Fluid waves effect simulated using box-shadows and pseudo elements */
+.leftPane::before {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  background: conic-gradient(from 90deg at 50% 50%, #a855f7 0%, #ec4899 25%, #06b6d4 50%, #10b981 75%, #a855f7 100%);
+  opacity: 0.15;
+  filter: blur(100px);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+
+.rightPane {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  background: var(--bg);
+  background: rgba(5, 5, 10, 0.9);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; }
+  .leftPane { display: none; }
 }
 
 .card {
   width: 100%;
-  max-width: 440px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(40px);
 }
 
 .logo {

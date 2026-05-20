@@ -1,118 +1,80 @@
 .card {
-  position: relative;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  display: flex; flex-direction: column;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: border-color var(--duration-md) var(--ease),
-              transform var(--duration-md) var(--ease),
-              box-shadow var(--duration-md) var(--ease);
+  transition: all var(--duration-md) var(--ease);
+  position: relative;
+  backdrop-filter: blur(20px);
 }
 .card:hover {
-  border-color: var(--border-3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), inset 0 0 10px rgba(6, 182, 212, 0.1);
+  transform: translateY(-4px);
 }
 
-/* Left accent bar */
 .accentBar {
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px; height: 100%;
-  background: var(--border-2);
-  transition: background var(--duration-md) var(--ease);
+  height: 4px; width: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0.5;
+  transition: opacity var(--duration) var(--ease);
 }
-.card:hover .accentBar      { background: var(--primary); }
-.featured .accentBar         { background: var(--warning); }
-.featured:hover .accentBar  { background: var(--warning); }
-.approved .accentBar         { background: var(--accent); }
-.approved:hover .accentBar  { background: var(--accent); }
+.card:hover .accentBar { opacity: 1; }
 
-.body { padding: var(--space-5) var(--space-5) var(--space-4) var(--space-6); flex: 1; display: flex; flex-direction: column; gap: var(--space-3); }
+.body { padding: var(--space-5); flex: 1; display: flex; flex-direction: column; gap: var(--space-3); }
 
-/* Top meta */
-.topMeta { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.topMeta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .domain {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.68rem; font-weight: 600; font-family: var(--font-mono);
-  text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--primary); background: var(--primary-dim);
-  border: 1px solid rgba(56,189,248,0.15);
-  padding: 2px 7px; border-radius: var(--radius-sm);
-}
-.featuredBadge {
-  font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono);
-  color: #fbbf24; background: rgba(251,191,36,0.10);
-  border: 1px solid rgba(251,191,36,0.2);
-  padding: 2px 7px; border-radius: var(--radius-sm);
-}
-.restrictedBadge {
-  font-size: 0.68rem; font-weight: 600; font-family: var(--font-mono);
-  color: var(--warning); background: rgba(251,191,36,0.08);
-  border: 1px solid rgba(251,191,36,0.15);
-  padding: 2px 7px; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+  color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;
+  background: var(--accent-dim); padding: 2px 8px; border-radius: var(--radius-full);
 }
 
-/* Title */
-.titleLink { text-decoration: none; }
-.title {
-  font-size: var(--text-base); font-weight: 700; color: var(--text-1);
-  letter-spacing: -0.02em; line-height: 1.3;
-  transition: color var(--duration) var(--ease);
-}
-.titleLink:hover .title { color: var(--primary); }
-.tagline { font-size: var(--text-xs); color: var(--text-3); line-height: 1.5; }
+.featuredBadge { font-size: 0.7rem; font-weight: 700; color: #fbbf24; background: rgba(251, 191, 36, 0.15); padding: 2px 8px; border-radius: var(--radius-full); }
+.restrictedBadge { font-size: 0.7rem; font-weight: 700; color: #f87171; background: rgba(248, 113, 113, 0.15); padding: 2px 8px; border-radius: var(--radius-full); }
 
-/* Tech stack */
-.techRow { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.title { font-size: var(--text-lg); font-weight: 800; color: #fff; line-height: 1.3; }
+.titleLink { text-decoration: none; color: inherit; }
+.titleLink:hover .title { color: var(--accent-l); }
+.tagline { font-size: var(--text-sm); color: var(--text-3); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.techRow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
 .techTag {
-  font-size: 0.68rem; font-weight: 500; font-family: var(--font-mono);
-  color: var(--text-3); background: var(--bg-3);
-  border: 1px solid var(--border); padding: 2px 7px;
-  border-radius: var(--radius-sm);
+  font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-2);
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 8px; border-radius: var(--radius-full);
 }
 
-/* Author */
-.author {
-  display: flex; align-items: center; gap: var(--space-2);
-  margin-top: auto; text-decoration: none;
-  padding-top: var(--space-2);
-}
-.authorAvatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-.authorName { display: block; font-size: var(--text-xs); font-weight: 600; color: var(--text-2); }
-.authorSub  { display: block; font-size: 0.68rem; color: var(--text-4); font-family: var(--font-mono); }
+.author { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4); text-decoration: none; }
+.authorAvatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.2); }
+.authorName { display: block; font-size: var(--text-sm); font-weight: 600; color: #fff; }
+.authorSub { display: block; font-size: 0.7rem; color: var(--text-4); }
 
-.teamRow {
-  display: flex; align-items: center; gap: var(--space-1);
-  font-size: var(--text-xs); color: var(--text-4); font-family: var(--font-mono);
-}
+.teamRow { display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--text-4); margin-top: var(--space-2); }
 
-/* Footer */
 .footer {
   display: flex; align-items: center; justify-content: space-between;
-  padding: var(--space-3) var(--space-5) var(--space-3) var(--space-6);
-  border-top: 1px solid var(--border);
-  background: var(--bg-3);
+  padding: var(--space-4) var(--space-5); background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
-.stats   { display: flex; align-items: center; gap: var(--space-3); }
-.stat    { display: flex; align-items: center; gap: 4px; font-size: var(--text-xs); color: var(--text-4); font-family: var(--font-mono); }
-.statBtn {
-  display: flex; align-items: center; gap: 4px;
-  font-size: var(--text-xs); color: var(--text-4); font-family: var(--font-mono);
-  background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px;
-  transition: color var(--duration) var(--ease), background var(--duration) var(--ease);
+.stats { display: flex; align-items: center; gap: var(--space-4); }
+.stat, .statBtn {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; font-family: var(--font-mono); color: var(--text-4); background: none; border: none; cursor: pointer; padding: 0;
 }
-.statBtn:hover { color: var(--text-2); background: var(--bg-4); }
-.liked      { color: var(--danger)  !important; }
-.bookmarked { color: var(--primary) !important; }
+.statBtn:hover { color: var(--text-2); }
+.liked { color: #f43f5e; }
+.liked:hover { color: #fb7185; }
+.bookmarked { color: var(--primary); }
+.bookmarked:hover { color: var(--primary-l); }
 
 .links { display: flex; gap: var(--space-2); }
 .linkBtn {
   display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: var(--radius-sm);
-  color: var(--text-4); border: 1px solid var(--border);
-  transition: color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+  width: 28px; height: 28px; border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.05); color: var(--text-2);
+  transition: all var(--duration) var(--ease);
 }
+.linkBtn:hover { background: var(--primary-dim); color: var(--primary-l); box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
 .linkBtn:hover { color: var(--primary); border-color: var(--primary); }
