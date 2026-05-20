@@ -12,7 +12,10 @@ import { useAuth } from '@/context/AuthContext';
 import type { StudentProfile, Project, Idea, Team } from '@/types';
 import ProjectCard from '@/components/cards/ProjectCard';
 import IdeaCard from '@/components/cards/IdeaCard';
-import { GitFork, Link2, ExternalLink, MapPin, Calendar, Eye, Users, Layers, Lightbulb, Award } from 'lucide-react';
+import { 
+  MapPin, Link as LinkIcon, Github, Linkedin, Eye, 
+  Layers, Lightbulb, Users, Award, Briefcase, FileText, Plus, ExternalLink, MessageSquare, GitFork, Link2 
+} from 'lucide-react';
 import styles from './profile.module.css';
 
 const BADGE_INFO: Record<string, { label: string; color: string }> = {
@@ -114,7 +117,16 @@ export default function ProfilePage() {
               <div className={styles.actionRow}>
                 {isOwn
                   ? <Link href="/settings" className="btn btn-secondary btn-sm">Edit profile</Link>
-                  : userId && <button className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'} btn-sm`} onClick={toggleFollow}>{isFollowing ? 'Following' : 'Follow'}</button>}
+                  : userId && (
+                      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                        <Link href={`/messages?user=${profile.userId}`} className="btn btn-secondary btn-sm">
+                          <MessageSquare size={14} /> Message
+                        </Link>
+                        <button className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'} btn-sm`} onClick={toggleFollow}>
+                          {isFollowing ? 'Following' : 'Follow'}
+                        </button>
+                      </div>
+                    )}
               </div>
             </div>
           </div>

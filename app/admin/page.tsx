@@ -121,6 +121,9 @@ export default function AdminPage() {
                 </button>
               ))}
               <hr style={{ borderColor: 'var(--border)', margin: 'var(--space-2) 0' }} />
+              <Link href="/admin/analytics" className="sidebar__item">
+                <LayoutDashboard size={16} /> Analytics
+              </Link>
               <Link href="/admin/hackathons" className="sidebar__item">
                 <Trophy size={16} /> Hackathons
               </Link>

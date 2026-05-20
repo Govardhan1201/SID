@@ -45,6 +45,7 @@ export default function Navbar() {
     { href: '/explore',           label: 'Explore' },
     { href: '/explore?tab=ideas', label: 'Ideas'   },
     { href: '/teams',             label: 'Teams'   },
+    { href: '/leaderboard',       label: 'Leaderboard' },
   ];
 
   const isActive = (href: string) => pathname === href.split('?')[0] || pathname.startsWith(href.split('?')[0] + '/');
