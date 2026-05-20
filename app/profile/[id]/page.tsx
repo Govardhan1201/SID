@@ -33,6 +33,7 @@ export default function ProfilePage() {
   const { userId, role } = useAuth();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [tab, setTab] = useState<ProfileTab>('projects');
   const [isFollowing, setIsFollowing] = useState(false);
