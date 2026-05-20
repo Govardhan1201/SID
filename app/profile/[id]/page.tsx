@@ -13,8 +13,7 @@ import type { StudentProfile, Project, Idea, Team } from '@/types';
 import ProjectCard from '@/components/cards/ProjectCard';
 import IdeaCard from '@/components/cards/IdeaCard';
 import { 
-  MapPin, Link as LinkIcon, Github, Linkedin, Eye, 
-  Layers, Lightbulb, Users, Award, Briefcase, FileText, Plus, ExternalLink, MessageSquare, GitFork, Link2 
+  MapPin, Eye, Layers, Lightbulb, Users, Award, ExternalLink, MessageSquare, GitFork, Link2, Calendar 
 } from 'lucide-react';
 import styles from './profile.module.css';
 

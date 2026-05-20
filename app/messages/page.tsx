@@ -1,14 +1,22 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import useSWR from 'swr';
 import Navbar from '@/components/layout/Navbar';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { getConversations, getMessages, sendMessage } from '@/app/actions/messages';
 import { Send, UserCircle } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="page"><Navbar /><main className="main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</main></div>}>
+      <MessagesContent />
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
   const { userId } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();

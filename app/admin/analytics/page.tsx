@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { getAnalyticsStats } from '@/app/actions/analytics';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Activity, Users, Layers, Lightbulb } from 'lucide-react';

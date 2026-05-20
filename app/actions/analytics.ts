@@ -1,11 +1,11 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getSessionAction } from '@/app/actions/auth';
 
 export async function getAnalyticsStats() {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'admin') {
+  const session = await getSessionAction();
+  if (!session || session.role !== 'admin') {
     throw new Error('Unauthorized');
   }
 

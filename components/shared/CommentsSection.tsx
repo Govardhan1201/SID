@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { addComment } from '@/app/actions/comments';
 import { Comment } from '@/types';
 import { Send, UserCircle } from 'lucide-react';

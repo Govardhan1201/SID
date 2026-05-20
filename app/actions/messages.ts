@@ -2,18 +2,18 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { getCurrentUser } from '@/lib/auth';
+import { getSessionAction } from '@/app/actions/auth';
 
 export async function getConversations() {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Not authenticated');
+  const session = await getSessionAction();
+  if (!session) throw new Error('Not authenticated');
 
   // Fetch all messages where user is sender or receiver
   const messages = await prisma.message.findMany({
     where: {
       OR: [
-        { senderId: user.id },
-        { receiverId: user.id }
+        { senderId: session.userId },
+        { receiverId: session.userId }
       ]
     },
     orderBy: { createdAt: 'desc' }
@@ -22,7 +22,7 @@ export async function getConversations() {
   // Extract unique conversation partners
   const partnerIds = new Set<string>();
   messages.forEach((msg: any) => {
-    partnerIds.add(msg.senderId === user.id ? msg.receiverId : msg.senderId);
+    partnerIds.add(msg.senderId === session.userId ? msg.receiverId : msg.senderId);
   });
 
   // Get profiles for these partners
@@ -37,7 +37,7 @@ export async function getConversations() {
       msg.senderId === partner.userId || msg.receiverId === partner.userId
     );
     const latestMessage = convoMessages[0];
-    const unreadCount = convoMessages.filter((msg: any) => msg.receiverId === user.id && !msg.isRead).length;
+    const unreadCount = convoMessages.filter((msg: any) => msg.receiverId === session.userId && !msg.isRead).length;
 
     return {
       partnerId: partner.userId,
@@ -53,14 +53,14 @@ export async function getConversations() {
 }
 
 export async function getMessages(partnerId: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Not authenticated');
+  const session = await getSessionAction();
+  if (!session) throw new Error('Not authenticated');
 
   const messages = await prisma.message.findMany({
     where: {
       OR: [
-        { senderId: user.id, receiverId: partnerId },
-        { senderId: partnerId, receiverId: user.id }
+        { senderId: session.userId, receiverId: partnerId },
+        { senderId: partnerId, receiverId: session.userId }
       ]
     },
     orderBy: { createdAt: 'asc' }
@@ -68,7 +68,7 @@ export async function getMessages(partnerId: string) {
 
   // Mark as read
   await prisma.message.updateMany({
-    where: { senderId: partnerId, receiverId: user.id, isRead: false },
+    where: { senderId: partnerId, receiverId: session.userId, isRead: false },
     data: { isRead: true }
   });
 
@@ -76,12 +76,12 @@ export async function getMessages(partnerId: string) {
 }
 
 export async function sendMessage(receiverId: string, content: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Not authenticated');
+  const session = await getSessionAction();
+  if (!session) throw new Error('Not authenticated');
 
   const message = await prisma.message.create({
     data: {
-      senderId: user.id,
+      senderId: session.userId,
       receiverId,
       content
     }
@@ -92,9 +92,9 @@ export async function sendMessage(receiverId: string, content: string) {
     data: {
       userId: receiverId,
       title: 'New Message',
-      message: `You have a new message from ${user.email}`, // Could lookup name here
+      message: `You have a new message`, // Could lookup name here
       type: 'message',
-      link: `/messages?user=${user.id}`
+      link: `/messages?user=${session.userId}`
     }
   });
 

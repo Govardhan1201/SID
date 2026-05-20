@@ -1,17 +1,17 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getSessionAction } from '@/app/actions/auth';
 import { revalidatePath } from 'next/cache';
 import { Comment } from '@/types';
 
 export async function addComment(targetId: string, targetType: 'project' | 'idea', content: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Not authenticated');
+  const session = await getSessionAction();
+  if (!session) throw new Error('Not authenticated');
 
   const newComment: Comment = {
     id: Date.now().toString(), // Simple ID for MVP
-    authorId: user.id,
+    authorId: session.userId,
     content,
     likes: [],
     replies: [],
@@ -33,7 +33,7 @@ export async function addComment(targetId: string, targetType: 'project' | 'idea
     });
 
     // Notify author
-    if (project.authorId !== user.id) {
+    if (project.authorId !== session.userId) {
       await prisma.notification.create({
         data: {
           userId: project.authorId,
@@ -59,7 +59,7 @@ export async function addComment(targetId: string, targetType: 'project' | 'idea
     });
 
     // Notify author
-    if (idea.authorId !== user.id) {
+    if (idea.authorId !== session.userId) {
       await prisma.notification.create({
         data: {
           userId: idea.authorId,
