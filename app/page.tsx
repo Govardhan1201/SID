@@ -109,24 +109,54 @@ export default function LandingPage() {
           <div className={styles.heroInner}>
             <div className={styles.heroContent}>
               <div className={styles.heroBadge}>
-                <Star size={12} fill="var(--primary)" />
-                <span>ULTRA-PREMIUM DEVELOPER PLATFORM</span>
+                <Star size={11} />
+                <span>Student Innovation Platform</span>
               </div>
               <h1 className={styles.heroTitle}>
-                Forge your ideas<br />
-                <span className={styles.heroAccent}>into reality</span>
+                Where engineering<br />
+                <span className={styles.heroAccent}>students ship</span><br />
+                real products.
               </h1>
               <p className={styles.heroSub}>
-                The ultimate platform for engineering students to build, showcase, and deploy. Get discovered by top tech companies globally.
+                Showcase projects. Submit ideas. Form teams. Get discovered by top recruiters — all in one place.
               </p>
               <div className={styles.heroCta}>
-                <Link href="/signup" className="btn btn-primary" style={{ height: '60px', padding: '0 40px', fontSize: '1.25rem', borderRadius: '30px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 10px 40px rgba(168, 85, 247, 0.6)' }}>
-                  Start Building Free <ArrowRight size={20} style={{ marginLeft: 8 }} />
+                <Link href="/signup" className="btn btn-primary btn-lg">
+                  Start building your profile <ArrowRight size={16} />
+                </Link>
+                <Link href="/login" className="btn btn-outline btn-lg">
+                  Sign in to explore
                 </Link>
               </div>
-              <p className={styles.heroNote} style={{ marginTop: 'var(--space-2)' }}>
-                No credit card required. Free for students forever.
+              <p className={styles.heroNote}>
+                Free for students. No credit card required.
               </p>
+            </div>
+
+            {/* Terminal window */}
+            <div className={styles.terminal}>
+              <div className={styles.terminalBar}>
+                <span className={styles.dot1} />
+                <span className={styles.dot2} />
+                <span className={styles.dot3} />
+                <span className={styles.terminalTitle}>ideaforge — zsh</span>
+              </div>
+              <div className={styles.terminalBody}>
+                {TERMINAL_LINES.slice(0, visibleLines).map((line, i) => (
+                  <div key={i} className={`${styles.termLine} ${styles[line.type]}`}>
+                    {line.text}
+                  </div>
+                ))}
+                {visibleLines < TERMINAL_LINES.length && (
+                  <div className={styles.cursor} />
+                )}
+                {visibleLines >= TERMINAL_LINES.length && (
+                  <div className={styles.termLine} style={{ marginTop: '12px' }}>
+                    <span className={styles.termPrompt}>$</span>
+                    <span className={styles.termBlinkCursor}>▋</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -159,9 +189,9 @@ export default function LandingPage() {
             <h2 className={styles.sectionTitle}>Everything you need to get noticed</h2>
             <p className={styles.sectionSub}>Built for students who build. Not for students who just list courses on a resume.</p>
           </div>
-          <div className="bento-grid">
-            {FEATURES.map((f, i) => (
-              <div key={f.title} className={`${styles.featureCard} glass-panel ${i === 0 ? 'bento-col-2 bento-row-2' : ''} ${i === 3 ? 'bento-col-2' : ''}`}>
+          <div className={styles.featureGrid}>
+            {FEATURES.map((f) => (
+              <div key={f.title} className={styles.featureCard}>
                 <div className={styles.featureIcon}>{f.icon}</div>
                 <h3 className={styles.featureTitle}>{f.title}</h3>
                 <p className={styles.featureDesc}>{f.desc}</p>

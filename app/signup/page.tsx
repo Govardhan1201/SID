@@ -44,104 +44,85 @@ function SignupForm() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.leftPane}>
-        {/* Abstract shapes or fluid background is handled via CSS pseudo elements */}
-      </div>
-      <div className={styles.rightPane}>
-        <div className={styles.card} style={{ position: 'relative' }}>
-          <Link href="/" className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '-40px', left: 0, padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-3)' }}>
-            <ArrowLeft size={16} /> Back to home
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <Link href="/" className={styles.logo} style={{ marginBottom: 0 }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--primary-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(168, 85, 247, 0.4)', boxShadow: 'var(--primary-glow)' }}>
-                <Layers size={18} strokeWidth={2.5} color="var(--primary)" />
-              </div>
-            </Link>
-            <div style={{ height: 16, width: 1, background: 'rgba(255, 255, 255, 0.2)' }} />
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-2)', letterSpacing: '0.02em' }}>Secure Access</span>
-          </div>
+      <Link href="/" className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '1rem', left: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-3)' }}>
+        <ArrowLeft size={16} /> Back to home
+      </Link>
+      <div className={styles.card}>
+        <Link href="/" className={styles.logo}><Layers size={20} strokeWidth={2.5} /><span>IdeaForge</span></Link>
+        <h1 className={styles.heading}>Create your account</h1>
 
-          <div>
-            <h1 className={styles.heading} style={{ marginBottom: 'var(--space-2)' }}>Create Account</h1>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.95rem' }}>Join the ultra-premium developer platform</p>
-          </div>
-
-          {/* Role picker */}
-          <div className={styles.rolePicker} style={{ marginTop: 'var(--space-2)' }}>
-            <button
-              type="button"
-              className={`${styles.roleBtn} ${role === 'student' ? styles.roleBtnActive : ''}`}
-              onClick={() => setRole('student')}
-            >
-              <span className={styles.roleBtnTitle}>Student</span>
-              <span className={styles.roleBtnSub}>Post projects and ideas</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.roleBtn} ${role === 'recruiter' ? styles.roleBtnActive : ''}`}
-              onClick={() => setRole('recruiter')}
-            >
-              <span className={styles.roleBtnTitle}>Recruiter</span>
-              <span className={styles.roleBtnSub}>Discover student talent</span>
-            </button>
-          </div>
-
-          {error && <div className={styles.errorBox} role="alert"><AlertCircle size={15} /> {error}</div>}
-
-          <form onSubmit={handleSubmit} noValidate style={{ marginTop: 'var(--space-2)' }}>
-            <div className="field">
-              <input
-                id="su-email" type="email" className="input" required
-                value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Email Address" autoComplete="email" maxLength={254} disabled={loading}
-              />
-            </div>
-
-            <div className="field">
-              <div className={styles.passwordWrap}>
-                <input
-                  id="su-password" type={showPw ? 'text' : 'password'} className="input" required
-                  value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="Create a strong password" autoComplete="new-password" maxLength={128} disabled={loading}
-                />
-                <button type="button" className={styles.eyeBtn} onClick={() => setShowPw(s => !s)} aria-label="Toggle password">
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              {password && (
-                <div className={styles.strengthBar}>
-                  <div className={styles.strengthFill} style={{ width: `${(strength.score / 4) * 100}%`, background: strength.color }} />
-                </div>
-              )}
-            </div>
-
-            <div className={styles.checkField}>
-              <input
-                id="agree" type="checkbox" checked={agreed}
-                onChange={e => setAgreed(e.target.checked)} disabled={loading}
-              />
-              <label htmlFor="agree">
-                I agree to the <Link href="/terms" className={styles.switchLink}>Terms of Use</Link> and{' '}
-                <Link href="/privacy" className={styles.switchLink}>Privacy Policy</Link>.
-              </label>
-            </div>
-
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '44px', fontSize: '1rem', marginTop: 'var(--space-2)' }} disabled={loading || !agreed}>
-              {loading ? 'Creating account…' : 'Create Account'}
-            </button>
-          </form>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', margin: 'var(--space-2) 0', color: 'var(--text-4)' }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}>OR</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-          </div>
-
-          <p className={styles.switchText}>
-            Already have an account? <Link href="/login" className={styles.switchLink}>Log in</Link>
-          </p>
+        {/* Role picker */}
+        <div className={styles.rolePicker}>
+          <button
+            type="button"
+            className={`${styles.roleBtn} ${role === 'student' ? styles.roleBtnActive : ''}`}
+            onClick={() => setRole('student')}
+          >
+            <span className={styles.roleBtnTitle}>Student</span>
+            <span className={styles.roleBtnSub}>Post projects and ideas</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.roleBtn} ${role === 'recruiter' ? styles.roleBtnActive : ''}`}
+            onClick={() => setRole('recruiter')}
+          >
+            <span className={styles.roleBtnTitle}>Recruiter</span>
+            <span className={styles.roleBtnSub}>Discover student talent</span>
+          </button>
         </div>
+
+        {error && <div className={styles.errorBox} role="alert"><AlertCircle size={15} /> {error}</div>}
+
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="field">
+            <label className="label" htmlFor="su-email">Email</label>
+            <input
+              id="su-email" type="email" className="input" required
+              value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com" autoComplete="email" maxLength={254} disabled={loading}
+            />
+          </div>
+
+          <div className="field">
+            <label className="label" htmlFor="su-password">Password</label>
+            <div className={styles.passwordWrap}>
+              <input
+                id="su-password" type={showPw ? 'text' : 'password'} className="input" required
+                value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="At least 8 characters" autoComplete="new-password" maxLength={128} disabled={loading}
+              />
+              <button type="button" className={styles.eyeBtn} onClick={() => setShowPw(s => !s)} aria-label="Toggle password">
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {password && (
+              <div className={styles.strengthBar}>
+                <div className={styles.strengthFill} style={{ width: `${(strength.score / 4) * 100}%`, background: strength.color }} />
+              </div>
+            )}
+            {password && <span className="hint" style={{ color: strength.color }}>{strength.label}</span>}
+          </div>
+
+          <div className={styles.checkField}>
+            <input
+              id="agree" type="checkbox" checked={agreed}
+              onChange={e => setAgreed(e.target.checked)} disabled={loading}
+            />
+            <label htmlFor="agree">
+              I agree to the <Link href="/terms" className={styles.switchLink}>Terms of Use</Link> and{' '}
+              <Link href="/privacy" className={styles.switchLink}>Privacy Policy</Link>. I understand IdeaForge
+              does not claim any IP rights over my submissions.
+            </label>
+          </div>
+
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading || !agreed}>
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+
+        <p className={styles.switchText}>
+          Already have an account? <Link href="/login" className={styles.switchLink}>Sign in</Link>
+        </p>
       </div>
     </div>
   );

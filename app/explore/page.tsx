@@ -188,69 +188,60 @@ function ExploreContent() {
   return (
     <div className="page">
       <Navbar />
-      <main className="main" style={{ display: 'flex' }}>
-        {/* Sidebar Filters */}
-        <aside className={styles.sidebar}>
-          <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Search</h3>
-            <div className={styles.searchWrap}>
-              <Search size={15} className={styles.searchIcon} />
-              <input
-                id="explore-search"
-                type="search"
-                className={styles.searchInput}
-                placeholder="Search..."
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                maxLength={200}
-              />
-              {query && <button className={styles.clearBtn} onClick={() => setQuery('')}><X size={14} /></button>}
-            </div>
-          </div>
-
-          <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Categories</h3>
-            <div className={styles.categoryList}>
-              {([
-                ['projects', 'Projects', <Layers key="l" size={14} />],
-                ['ideas',    'Ideas',    <Lightbulb key="lb" size={14} />],
-                ['students', 'Students', <User key="u" size={14} />],
-                ['teams',    'Teams',    <Users key="us" size={14} />],
-              ] as const).map(([t, label, icon]) => (
-                <button key={t} className={`${styles.categoryItem} ${tab === t ? styles.categoryItemActive : ''}`} onClick={() => setTab(t as Tab)}>
-                  {icon} {label} <span className={styles.categoryCount}>{tabCounts[t as Tab]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Domain</h3>
-            <div className={styles.filterList}>
-              {DOMAINS.map(d => (
-                <button key={d}
-                  className={`${styles.filterChip} ${domain === d ? styles.filterChipActive : ''}`}
-                  onClick={() => setDomain(d)}>
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Sort By</h3>
-            <select className="select" style={{ width: '100%', fontSize: 'var(--text-sm)', background: 'var(--bg-3)', color: 'var(--text-2)', borderColor: 'var(--border-2)' }} value={sort} onChange={e => setSort(e.target.value)}>
-              {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <div className={styles.contentArea}>
-          <div className={styles.contentHeader}>
+      <main className="main">
+        <div className={styles.topBar}>
+          <div className="container">
             <h1 className={styles.pageTitle}>
               Explore <span className={styles.pageTitleMono}>// {tab}</span>
             </h1>
+            <div className={styles.controls}>
+              <div className={styles.searchWrap}>
+                <Search size={15} className={styles.searchIcon} />
+                <input
+                  id="explore-search"
+                  type="search"
+                  className={styles.searchInput}
+                  placeholder="Search by title, skill, tech, college…"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  maxLength={200}
+                />
+                {query && <button className={styles.clearBtn} onClick={() => setQuery('')}><X size={14} /></button>}
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowFilters(f => !f)}>
+                <SlidersHorizontal size={14} /> Filters
+              </button>
+              <select className="select" style={{ width: 'auto', fontSize: 'var(--text-sm)' }} value={sort} onChange={e => setSort(e.target.value)}>
+                {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+
+            {showFilters && (
+              <div className={styles.filterRow}>
+                {DOMAINS.map(d => (
+                  <button key={d}
+                    className={`${styles.filterChip} ${domain === d ? styles.filterChipActive : ''}`}
+                    onClick={() => setDomain(d)}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="container" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-16)' }}>
+          <div className="tabs">
+            {([
+              ['projects', 'Projects', <Layers key="l" size={14} />],
+              ['ideas',    'Ideas',    <Lightbulb key="lb" size={14} />],
+              ['students', 'Students', <User key="u" size={14} />],
+              ['teams',    'Teams',    <Users key="us" size={14} />],
+            ] as const).map(([t, label, icon]) => (
+              <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t as Tab)}>
+                {icon} {label} <span className={styles.tabCount}>{tabCounts[t as Tab]}</span>
+              </button>
+            ))}
           </div>
 
           {tab === 'projects' && (

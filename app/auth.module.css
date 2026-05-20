@@ -1,67 +1,38 @@
 .page {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: var(--bg);
-}
-
-.leftPane {
-  background: radial-gradient(circle at top left, rgba(168, 85, 247, 0.4), transparent 60%),
-              radial-gradient(circle at bottom right, rgba(6, 182, 212, 0.4), transparent 60%),
-              #05050a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Fluid waves effect simulated using conic gradients */
-.leftPane::before {
-  content: '';
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(from 90deg at 50% 50%, #10b981, #06b6d4, #a855f7, #ec4899, #f59e0b, #10b981);
-  opacity: 0.3;
-  filter: blur(80px);
-  animation: rotate 15s linear infinite;
-}
-
-@keyframes rotate {
-  100% { transform: rotate(360deg); }
-}
-
-.rightPane {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  background: #080c14; /* Deep dark exact background */
+  background: var(--bg);
   position: relative;
+  overflow: hidden;
 }
-
-@media (max-width: 900px) {
-  .page { grid-template-columns: 1fr; }
-  .leftPane { display: none; }
+.page::before {
+  content: ''; position: absolute; top: 10%; left: 10%; width: 40%; height: 40%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.15; filter: blur(140px); z-index: 0;
+}
+.page::after {
+  content: ''; position: absolute; bottom: 10%; right: 10%; width: 40%; height: 40%;
+  background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+  opacity: 0.15; filter: blur(140px); z-index: 0;
 }
 
 .card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-8);
-  /* Exact Glass Panel */
-  background: rgba(15, 20, 30, 0.4);
+  gap: var(--space-5);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-radius: var(--radius-xl);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.6);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
 
 .logo {

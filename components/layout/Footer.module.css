@@ -1,7 +1,17 @@
 .footer {
-  background: var(--bg-2);
-  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   margin-top: auto;
+  position: relative;
+  overflow: hidden;
+}
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%;
+  width: 60%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-dim), transparent);
 }
 
 .inner {

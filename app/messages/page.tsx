@@ -93,10 +93,10 @@ function MessagesContent() {
   }
 
   return (
-    <div style={{ height: '100vh', overflow: 'hidden' }}>
+    <div className="page" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Navbar />
       
-      <main style={{ height: 'calc(100vh - 60px)', overflow: 'hidden', padding: 0, position: 'relative' }}>
+      <main className="main" style={{ flex: 1, overflow: 'hidden', padding: 0, position: 'relative' }}>
         {/* Background gradient for glassmorphism */}
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, var(--primary) 0%, transparent 60%)', opacity: 0.15, filter: 'blur(100px)', zIndex: 0 }} />
         <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, var(--accent) 0%, transparent 60%)', opacity: 0.1, filter: 'blur(100px)', zIndex: 0 }} />
