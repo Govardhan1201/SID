@@ -4,6 +4,7 @@
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(12px);
   height: 60px;
+  flex-shrink: 0;
 }
 .inner {
   display: flex; align-items: center; height: 100%; gap: var(--space-6);
