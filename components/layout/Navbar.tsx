@@ -45,8 +45,8 @@ export default function Navbar() {
   }
 
   const navLinks = [
+    { href: '/how-it-works',      label: 'How it Works' },
     { href: '/explore',           label: 'Explore' },
-    { href: '/explore?tab=ideas', label: 'Ideas'   },
     { href: '/teams',             label: 'Teams'   },
     { href: '/leaderboard',       label: 'Leaderboard' },
   ];
