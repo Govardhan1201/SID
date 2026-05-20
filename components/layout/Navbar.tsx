@@ -45,10 +45,10 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: '/how-it-works',      label: 'How it Works' },
     { href: '/explore',           label: 'Explore' },
     { href: '/teams',             label: 'Teams'   },
     { href: '/leaderboard',       label: 'Leaderboard' },
+    { href: '/how-it-works',      label: 'How it Works' },
   ];
 
   const isActive = (href: string) => pathname === href.split('?')[0] || pathname.startsWith(href.split('?')[0] + '/');
