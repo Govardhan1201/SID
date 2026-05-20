@@ -267,6 +267,7 @@ export interface Hackathon {
   tracks: HackathonTrack[];
   announcements: HackathonAnnouncement[];
   deadline: string;         // ISO date-time string, editable
+  registrationLink?: string;
   status: HackathonStatus;
   judgeToken: string;       // UUID — used in external judge link
   judgePasswordHash: string;// hashed judge access password
