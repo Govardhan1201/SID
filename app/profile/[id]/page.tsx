@@ -92,7 +92,7 @@ export default function ProfilePage() {
       </div></main><Footer /></div>
   );
 
-  if (!profile && !isLoadingProfile) return (
+  if (!profile) return (
     <div className="page"><Navbar />
       <main className="main"><div className="container" style={{ paddingTop: 'var(--space-16)' }}>
         <div className="empty-state"><p className="empty-state__title">Profile not found</p><Link href="/explore?tab=students" className="btn btn-primary btn-sm">Browse students</Link></div>
