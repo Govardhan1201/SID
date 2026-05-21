@@ -292,8 +292,8 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* How it Works FAB (Authenticated Users Only) */}
-      {isAuthenticated && (
+      {/* How it Works FAB — shown to unauthenticated users so they know what the platform does */}
+      {!isAuthenticated && (
         <Link
           href="/how-it-works"
           style={{
