@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>('overview');
   const [projects, setProjects] = useState<Project[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [modFilterDomain, setModFilterDomain] = useState<string>('All');
   const [users, setUsers] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [studentProfiles, setStudentProfiles] = useState<any[]>([]);
@@ -54,8 +55,8 @@ export default function AdminPage() {
 
   const students  = users.filter(u => u.role === 'student');
   const recruiters = users.filter(u => u.role === 'recruiter');
-  const pendingP  = projects.filter(p => p.moderationStatus === 'pending');
-  const pendingI  = ideas.filter(i => i.moderationStatus === 'pending');
+  const pendingP  = projects.filter(p => p.moderationStatus === 'pending' && (modFilterDomain === 'All' || p.domain === modFilterDomain));
+  const pendingI  = ideas.filter(i => i.moderationStatus === 'pending' && (modFilterDomain === 'All' || i.domain === modFilterDomain));
   const archivedP = projects.filter(p => p.moderationStatus === 'archived');
   const archivedI = ideas.filter(i => i.moderationStatus === 'archived');
 
@@ -203,7 +204,13 @@ export default function AdminPage() {
               {/* ── Content moderation ── */}
               {tab === 'content' && (
                 <>
-                  <h1 className={styles.pageTitle}>Moderation Queue</h1>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+                    <h1 className={styles.pageTitle} style={{ margin: 0 }}>Moderation Queue</h1>
+                    <select className="input" style={{ width: 'auto', padding: '8px 16px', background: 'var(--bg-2)' }} value={modFilterDomain} onChange={(e) => setModFilterDomain(e.target.value)}>
+                      <option value="All">All Domains</option>
+                      {topDomains.map(([d]) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
 
                   {pendingP.length + pendingI.length === 0 && (
                     <div className="empty-state"><CheckCircle size={40} style={{color:'var(--success)'}}/><p className="empty-state__title">Queue is clear</p><p className="empty-state__body">All submissions have been reviewed.</p></div>

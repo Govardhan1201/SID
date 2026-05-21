@@ -7,7 +7,7 @@ import { getVisibleProjects } from '@/app/actions/projects';
 import { getVisibleIdeas } from '@/app/actions/ideas';
 import {
   Layers, ArrowRight, Terminal, Code2, Users, Zap,
-  GitBranch, Shield, Search, ChevronRight, Star
+  GitBranch, Shield, Search, ChevronRight, Star, HelpCircle
 } from 'lucide-react';
 import styles from './page.module.css';
 
@@ -291,6 +291,33 @@ export default function LandingPage() {
           <p className={styles.footerCopy}>© {new Date().getFullYear()} IdeaForge. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* How it Works FAB (Authenticated Users Only) */}
+      {isAuthenticated && (
+        <Link
+          href="/how-it-works"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 24px rgba(0, 242, 254, 0.4)',
+            zIndex: 999,
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            color: '#000',
+          }}
+          title="How it Works"
+          aria-label="How it works"
+        >
+          <HelpCircle size={24} />
+        </Link>
+      )}
     </div>
   );
 }

@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 import {
-  Layers, Search, Bell, ChevronDown, LogOut,
-  User, LayoutDashboard, Settings, Menu, X, Plus, Terminal
+  Layers, Bell, ChevronDown, LogOut, MessageSquare,
+  User, LayoutDashboard, Settings, Menu, X, Plus, HelpCircle
 } from 'lucide-react';
 import styles from './Navbar.module.css';
 
@@ -45,10 +45,10 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: '/explore',           label: 'Explore' },
-    { href: '/teams',             label: 'Teams'   },
-    { href: '/leaderboard',       label: 'Leaderboard' },
-    { href: '/how-it-works',      label: 'How it Works' },
+    { href: '/explore',      label: 'Explore' },
+    { href: '/teams',        label: 'Teams'   },
+    { href: '/leaderboard',  label: 'Leaderboard' },
+    ...(!isAuthenticated ? [{ href: '/how-it-works', label: 'How it Works' }] : []),
   ];
 
   const isActive = (href: string) => pathname === href.split('?')[0] || pathname.startsWith(href.split('?')[0] + '/');
@@ -58,7 +58,7 @@ export default function Navbar() {
       <div className={`container ${styles.inner}`}>
 
         {/* Logo */}
-        <Link href="/" className={styles.logo}>
+        <Link href={isAuthenticated ? getDashHref() : '/'} className={styles.logo}>
           <Layers size={18} strokeWidth={2.5} />
           <span>IdeaForge</span>
         </Link>
@@ -86,6 +86,11 @@ export default function Navbar() {
                   <Plus size={13} /> Submit
                 </Link>
               )}
+
+              {/* Messages shortcut */}
+              <Link href="/messages" className={styles.iconBtn} aria-label="Messages">
+                <MessageSquare size={15} />
+              </Link>
 
               {/* Bell — links directly to notifications tab or shows dropdown */}
               <div ref={notifRef} className={styles.profileMenu}>

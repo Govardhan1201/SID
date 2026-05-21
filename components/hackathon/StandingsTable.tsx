@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import type { Hackathon, HackathonProject, HackathonTeam, HackathonStandings, HackathonTrackResult } from '@/types';
+import { updateHackathonProjectStanding } from '@/app/actions/hackathon';
 import { Trophy, Medal, Save } from 'lucide-react';
 
 interface Props {
@@ -51,15 +52,35 @@ export default function StandingsTable({ hackathon, projects, teams, standings, 
       };
     });
 
-    const newStandings: HackathonStandings = {
-      hackathonId: hackathon.id,
-      publishedAt: new Date().toISOString(),
-      isPublished: true, 
-      results
-    };
+    // Save "standing" to each project in the DB
+    const promises: Promise<any>[] = [];
+    hackathon.tracks.forEach(t => {
+      const winTeam = editableStandings[t.id].winnerTeamId;
+      const runnerTeam = editableStandings[t.id].runnerUpTeamId;
+      
+      if (winTeam) {
+        const p = projects.find(x => x.teamId === winTeam);
+        if (p) promises.push(updateHackathonProjectStanding(p.id, 'Winner'));
+      }
+      if (runnerTeam) {
+        const p = projects.find(x => x.teamId === runnerTeam);
+        if (p) promises.push(updateHackathonProjectStanding(p.id, 'Runner Up'));
+      }
+    });
 
-    onSave(newStandings);
-    setSaving(false);
+    Promise.all(promises).then(() => {
+      const newStandings: HackathonStandings = {
+        hackathonId: hackathon.id,
+        publishedAt: new Date().toISOString(),
+        isPublished: true, 
+        results
+      };
+
+      onSave(newStandings);
+      setSaving(false);
+    });
+
+
   }
 
   return (

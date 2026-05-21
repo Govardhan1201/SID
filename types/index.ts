@@ -317,6 +317,7 @@ export interface HackathonProject {
   status: HackathonProjectStatus;
   submittedAt: string | null;
   linkedPortfolioProjectId: string | null; // links to regular Project after hackathon
+  standing: string;
   createdAt: string;
   updatedAt: string;
 }

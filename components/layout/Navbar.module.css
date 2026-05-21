@@ -1,6 +1,6 @@
 .header {
-  position: sticky; top: var(--space-4); z-index: 100;
-  margin: 0 auto;
+  position: relative; z-index: 100;
+  margin: var(--space-4) auto 0;
   max-width: 1200px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);

@@ -49,11 +49,6 @@ export default function LoginPage() {
       <div className={styles.card}>
         <Link href="/" className={styles.logo}><Layers size={20} strokeWidth={2.5} /><span>IdeaForge</span></Link>
         <h1 className={styles.heading}>Sign in to your account</h1>
-        <p className={styles.sub}>
-          Demo credentials — Student: <code>aryan@student.com / Student@123</code><br />
-          Recruiter: <code>neha@razorpay.com / Recruiter@123</code><br />
-          Admin: <code>admin@ideaforge.dev / Admin@123</code>
-        </p>
 
         {error && (
           <div className={styles.errorBox} role="alert">

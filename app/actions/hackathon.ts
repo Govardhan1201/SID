@@ -266,3 +266,10 @@ export async function importHackathonParticipants(
 
   return results;
 }
+
+export async function updateHackathonProjectStanding(projectId: string, standing: string) {
+  return await prisma.hackathonProject.update({
+    where: { id: projectId },
+    data: { standing }
+  });
+}
