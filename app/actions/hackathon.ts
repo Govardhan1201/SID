@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import type { Hackathon, HackathonTrack, HackathonAnnouncement, HackathonTeam, HackathonProject } from '@/types';
+import type { Hackathon, HackathonTrack, HackathonAnnouncement, HackathonTeam, HackathonProject, ScoringRubric, JudgeScore } from '@/types';
 
 // ── GET ACTIONS ─────────────────────────────────────────────────────────────
 
@@ -271,5 +271,42 @@ export async function updateHackathonProjectStanding(projectId: string, standing
   return await prisma.hackathonProject.update({
     where: { id: projectId },
     data: { standing }
+  });
+}
+
+export async function updateHackathonRubric(hackathonId: string, rubric: ScoringRubric[]) {
+  return await prisma.hackathon.update({
+    where: { id: hackathonId },
+    data: { rubric: rubric as any }
+  });
+}
+
+export async function submitJudgeScore(projectId: string, judgeName: string, scores: Record<string, number>, totalScore: number) {
+  const project = await prisma.hackathonProject.findUnique({
+    where: { id: projectId },
+    select: { judgeScores: true }
+  });
+
+  if (!project) throw new Error('Project not found');
+
+  const existingScores = (project.judgeScores as any) || [];
+  const newScore: JudgeScore = {
+    judgeName,
+    scores,
+    totalScore,
+    submittedAt: new Date().toISOString()
+  };
+
+  // Find if this judge already scored, and update it, else push new
+  const index = existingScores.findIndex((s: any) => s.judgeName === judgeName);
+  if (index >= 0) {
+    existingScores[index] = newScore;
+  } else {
+    existingScores.push(newScore);
+  }
+
+  return await prisma.hackathonProject.update({
+    where: { id: projectId },
+    data: { judgeScores: existingScores }
   });
 }

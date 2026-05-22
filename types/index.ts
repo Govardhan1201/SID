@@ -252,6 +252,18 @@ export interface HackathonTrack {
   openInnovation: boolean; // true = teams define their own problem
 }
 
+export interface ScoringRubric {
+  label: string;
+  maxScore: number;
+}
+
+export interface JudgeScore {
+  judgeName: string;
+  scores: Record<string, number>;
+  totalScore: number;
+  submittedAt: string;
+}
+
 export interface HackathonAnnouncement {
   id: string;
   text: string;
@@ -267,6 +279,7 @@ export interface Hackathon {
   banner: string;
   tracks: HackathonTrack[];
   announcements: HackathonAnnouncement[];
+  rubric: ScoringRubric[];
   deadline: string;         // ISO date-time string, editable
   registrationLink?: string;
   status: HackathonStatus;
@@ -318,6 +331,7 @@ export interface HackathonProject {
   submittedAt: string | null;
   linkedPortfolioProjectId: string | null; // links to regular Project after hackathon
   standing: string;
+  judgeScores: JudgeScore[];
   createdAt: string;
   updatedAt: string;
 }

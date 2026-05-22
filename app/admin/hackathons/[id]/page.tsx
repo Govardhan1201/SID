@@ -13,7 +13,8 @@ import {
   updateHackathonStatus,
   addHackathonAnnouncement,
   deleteHackathonAnnouncement,
-  deleteHackathon
+  deleteHackathon,
+  updateHackathonRubric
 } from '@/app/actions/hackathon';
 import { HackathonStandingsStore } from '@/lib/hackathon-store';
 import { getUserEmailsByIds } from '@/app/actions/users';
@@ -22,7 +23,8 @@ import type {
   HackathonTeam, 
   HackathonParticipant, 
   HackathonProject,
-  HackathonStandings 
+  HackathonStandings,
+  ScoringRubric
 } from '@/types';
 import ImportWizard from '@/components/hackathon/ImportWizard';
 import StandingsTable from '@/components/hackathon/StandingsTable';
@@ -56,6 +58,10 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
   const [annText, setAnnText] = useState('');
   const [annType, setAnnType] = useState<'info' | 'warning' | 'success' | 'urgent'>('info');
 
+  // Rubric state
+  const [rubric, setRubric] = useState<ScoringRubric[]>([]);
+  const [rubricSaving, setRubricSaving] = useState(false);
+
   useEffect(() => {
     if (!isLoading && role !== 'admin') router.replace('/dashboard');
   }, [role, isLoading, router]);
@@ -66,6 +72,7 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
       if (!h) { router.replace('/admin/hackathons'); return; }
       
       setHackathon(h as unknown as Hackathon);
+      setRubric((h.rubric as unknown as ScoringRubric[]) || []);
       setTeams((await getTeamsByHackathon(id)) as unknown as HackathonTeam[]);
       setParticipants((await getParticipantsByHackathon(id)) as unknown as HackathonParticipant[]);
       setProjects((await getProjectsByHackathon(id)) as unknown as HackathonProject[]);
@@ -138,6 +145,29 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
       ...hackathon,
       announcements: (hackathon.announcements || []).filter(a => a.id !== annId)
     });
+  }
+
+  async function handleSaveRubric() {
+    if (!hackathon) return;
+    setRubricSaving(true);
+    await updateHackathonRubric(hackathon.id, rubric);
+    setRubricSaving(false);
+  }
+
+  function addRubricItem() {
+    setRubric([...rubric, { label: 'New Criteria', maxScore: 10 }]);
+  }
+
+  function updateRubricItem(index: number, field: keyof ScoringRubric, value: any) {
+    const newRubric = [...rubric];
+    newRubric[index] = { ...newRubric[index], [field]: value };
+    setRubric(newRubric);
+  }
+
+  function removeRubricItem(index: number) {
+    const newRubric = [...rubric];
+    newRubric.splice(index, 1);
+    setRubric(newRubric);
   }
 
   const isPastDeadline = new Date(hackathon.deadline) < new Date();
@@ -437,6 +467,59 @@ export default function ManageHackathonPage({ params }: { params: Promise<{ id: 
                       />
                     </div>
                     <p className="hint">For MVP, editing these fields post-creation is disabled. Delete and recreate if needed.</p>
+                  </div>
+
+                  <div className="card" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+                      <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>Scoring Rubric</h3>
+                      <button className="btn btn-secondary btn-sm" onClick={addRubricItem}>
+                        <Plus size={14} /> Add Criteria
+                      </button>
+                    </div>
+                    <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>Define the criteria judges will use to score projects. Changes will apply immediately.</p>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+                      {rubric.length === 0 ? (
+                        <p style={{ color: 'var(--text-3)', fontSize: 'var(--text-sm)', fontStyle: 'italic' }}>No rubric defined. Judges won't be able to score projects.</p>
+                      ) : (
+                        rubric.map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                            <div style={{ flex: 1 }}>
+                              <input 
+                                type="text" 
+                                className="input" 
+                                value={item.label} 
+                                onChange={e => updateRubricItem(idx, 'label', e.target.value)}
+                                placeholder="Criteria Name (e.g. Innovation)"
+                              />
+                            </div>
+                            <div style={{ width: '120px' }}>
+                              <input 
+                                type="number" 
+                                className="input" 
+                                value={item.maxScore} 
+                                onChange={e => updateRubricItem(idx, 'maxScore', parseInt(e.target.value) || 0)}
+                                placeholder="Max Score"
+                                min={1}
+                              />
+                            </div>
+                            <button className="btn btn-ghost" style={{ color: 'var(--danger)', padding: 'var(--space-2)' }} onClick={() => removeRubricItem(idx)}>
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {rubric.length > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 'var(--space-4)' }}>
+                        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)' }}>
+                          Total Possible Score: <strong>{rubric.reduce((acc, r) => acc + r.maxScore, 0)}</strong>
+                        </div>
+                        <button className="btn btn-primary btn-sm" onClick={handleSaveRubric} disabled={rubricSaving}>
+                          {rubricSaving ? 'Saving...' : 'Save Rubric'}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="card" style={{ padding: 'var(--space-6)', border: '1px solid var(--danger)' }}>

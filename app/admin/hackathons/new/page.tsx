@@ -70,6 +70,7 @@ export default function NewHackathonPage() {
         judgeToken:       generateJudgeToken(),
         judgePasswordHash,
         createdBy:        'admin',  // filled by auth context in real app
+        rubric:           [],
       });
       router.push(`/admin/hackathons/${hackathon.id}`);
     } catch (e) {

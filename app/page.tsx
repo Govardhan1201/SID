@@ -10,6 +10,7 @@ import {
   GitBranch, Shield, Search, ChevronRight, Star, HelpCircle
 } from 'lucide-react';
 import styles from './page.module.css';
+import HowItWorksModal from '@/components/shared/HowItWorksModal';
 
 const DOMAINS = ['AI/ML','Web Dev','Mobile','DevOps/Cloud','IoT/Hardware','Blockchain/Web3','Healthcare','Fintech','EdTech','SaaS','Cybersecurity','AR/VR','Data Engineering','Social Impact'];
 
@@ -58,6 +59,7 @@ export default function LandingPage() {
   const { isAuthenticated } = useAuth();
   const [visibleLines, setVisibleLines] = useState(0);
   const [stats, setStats] = useState({ students: 0, projects: 0, ideas: 0 });
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   useEffect(() => {
     // Animate terminal lines
@@ -294,8 +296,8 @@ export default function LandingPage() {
 
       {/* How it Works FAB — shown to unauthenticated users so they know what the platform does */}
       {!isAuthenticated && (
-        <Link
-          href="/how-it-works"
+        <button
+          onClick={() => setShowHowItWorks(true)}
           style={{
             position: 'fixed',
             bottom: '24px',
@@ -311,13 +313,17 @@ export default function LandingPage() {
             zIndex: 999,
             transition: 'transform 0.2s, box-shadow 0.2s',
             color: '#000',
+            border: 'none',
+            cursor: 'pointer'
           }}
           title="How it Works"
           aria-label="How it works"
         >
           <HelpCircle size={24} />
-        </Link>
+        </button>
       )}
+
+      <HowItWorksModal isOpen={showHowItWorks} onClose={() => setShowHowItWorks(false)} />
     </div>
   );
 }

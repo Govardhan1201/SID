@@ -195,9 +195,15 @@ export default function StandingsTable({ hackathon, projects, teams, standings, 
                     <option value="">-- Select team --</option>
                     {trackProjects.map(p => {
                       const t = teams.find(tm => tm.id === p.teamId);
+                      const scores = (p.judgeScores as any[]) || [];
+                      let avgStr = '';
+                      if (scores.length > 0) {
+                        const total = scores.reduce((acc, s) => acc + (s.totalScore || 0), 0);
+                        avgStr = ` - Score: ${(total / scores.length).toFixed(1)} (${scores.length} judges)`;
+                      }
                       return (
                         <option key={p.teamId} value={p.teamId}>
-                          {p.title} {t ? `(${t.name})` : ''}
+                          {p.title} {t ? `(${t.name})` : ''}{avgStr}
                         </option>
                       );
                     })}

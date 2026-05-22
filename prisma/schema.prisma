@@ -78,6 +78,7 @@ model Hackathon {
   judgeToken        String                  @unique
   judgePasswordHash String
   createdBy         String
+  rubric            Json                    @default("[]")
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @updatedAt
   announcements     HackathonAnnouncement[]
@@ -152,6 +153,7 @@ model HackathonProject {
   submittedAt              DateTime?
   linkedPortfolioProjectId String?
   standing                 String    @default("")
+  judgeScores              Json      @default("[]")
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
   hackathon                Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)

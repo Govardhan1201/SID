@@ -2,9 +2,9 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getHackathonById, getProjectsByHackathon, getTeamsByHackathon } from '@/app/actions/hackathon';
+import { getHackathonById, getProjectsByHackathon, getTeamsByHackathon, submitJudgeScore } from '@/app/actions/hackathon';
 import { verifyPassword } from '@/lib/security';
-import type { Hackathon, HackathonProject, HackathonTeam } from '@/types';
+import type { Hackathon, HackathonProject, HackathonTeam, ScoringRubric, JudgeScore } from '@/types';
 import TrackBadge from '@/components/hackathon/TrackBadge';
 import { Shield, Search, ExternalLink, Video, FileText, ChevronRight, LayoutList, Trophy } from 'lucide-react';
 import styles from './judge.module.css';
@@ -16,6 +16,7 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
 
   const [hackathon, setHackathon] = useState<Hackathon | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
+  const [judgeName, setJudgeName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   
@@ -23,6 +24,7 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
   const [teams, setTeams] = useState<HackathonTeam[]>([]);
   const [filterTrack, setFilterTrack] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [savingProjectId, setSavingProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -32,7 +34,9 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
 
       // Check if already authenticated in this session
       const token = sessionStorage.getItem(`judge_token_${id}`);
-      if (token === h.judgeToken) {
+      const jName = sessionStorage.getItem(`judge_name_${id}`);
+      if (token === h.judgeToken && jName) {
+        setJudgeName(jName);
         await loadData();
         setAuthenticated(true);
       }
@@ -50,10 +54,13 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
     if (!hackathon) return;
     
     setError('');
+    if (!judgeName.trim()) { setError('Please enter your name'); return; }
+
     const isValid = await verifyPassword(password, hackathon.judgePasswordHash);
     
     if (isValid) {
       sessionStorage.setItem(`judge_token_${id}`, hackathon.judgeToken);
+      sessionStorage.setItem(`judge_name_${id}`, judgeName.trim());
       await loadData();
       setAuthenticated(true);
     } else {
@@ -77,6 +84,17 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
           
           <form onSubmit={handleLogin} className={styles.authForm}>
             <div className="field">
+              <label className="label">Judge Name</label>
+              <input 
+                type="text" 
+                className="input" 
+                value={judgeName}
+                onChange={e => setJudgeName(e.target.value)}
+                placeholder="E.g., Jane Doe"
+                autoFocus
+              />
+            </div>
+            <div className="field">
               <label className="label">Enter Judge Password</label>
               <input 
                 type="password" 
@@ -84,7 +102,6 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Password provided by admin"
-                autoFocus
               />
               {error && <p className={styles.errorText}>{error}</p>}
             </div>
@@ -116,11 +133,15 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
             <div className={styles.headerBadge}><Shield size={16} /> Judge Portal</div>
             <h1 className={styles.headerTitle}>{hackathon.name}</h1>
+            <span style={{ color: 'var(--text-3)', fontSize: 'var(--text-sm)', marginLeft: 'var(--space-4)' }}>
+              Welcome, <strong>{judgeName}</strong>
+            </span>
           </div>
           <button 
             className="btn btn-ghost btn-sm" 
             onClick={() => {
               sessionStorage.removeItem(`judge_token_${id}`);
+              sessionStorage.removeItem(`judge_name_${id}`);
               setAuthenticated(false);
             }}
           >
@@ -179,16 +200,25 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
                 
                 <h3 className={styles.projTitle}>{proj.title}</h3>
                 
-                {/* For MVP we link directly to the main project detail page. 
-                    In a real app, judges might have a specialized scoring view. */}
                 <div className={styles.links}>
                   <Link href={`/project/${proj.linkedPortfolioProjectId}`} target="_blank" className="btn btn-primary btn-sm" style={{ width: '100%' }}>
                     View Full Details <ExternalLink size={14} />
                   </Link>
-                  
-                  {/* We can pull links from the actual project if we loaded the full project, 
-                      but for simplicity in this MVP we just link to the detail page. */}
                 </div>
+
+                {/* SCORING PANEL */}
+                {hackathon.rubric && hackathon.rubric.length > 0 && (
+                  <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--bg-1)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                    <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-3)' }}>Assign Score</h4>
+                    <ScoreForm 
+                      projectId={proj.id} 
+                      judgeName={judgeName}
+                      rubric={hackathon.rubric} 
+                      existingScores={(proj.judgeScores as any[]) || []}
+                      onSaved={loadData}
+                    />
+                  </div>
+                )}
                 
                 <div className={styles.cardFooter}>
                   <Link href={`/project/${proj.linkedPortfolioProjectId}`} target="_blank" className={styles.footerLink}>
@@ -208,6 +238,66 @@ export default function JudgePortalPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+// SCORING COMPONENT
+function ScoreForm({ projectId, judgeName, rubric, existingScores, onSaved }: { 
+  projectId: string; 
+  judgeName: string; 
+  rubric: ScoringRubric[]; 
+  existingScores: JudgeScore[]; 
+  onSaved: () => void 
+}) {
+  const existingMyScore = existingScores.find(s => s.judgeName === judgeName);
+  const initialValues = existingMyScore ? existingMyScore.scores : {};
+  
+  const [scores, setScores] = useState<Record<string, number>>(initialValues);
+  const [saving, setSaving] = useState(false);
+
+  const totalScore = rubric.reduce((acc, r) => acc + (scores[r.label] || 0), 0);
+  const maxPossible = rubric.reduce((acc, r) => acc + r.maxScore, 0);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await submitJudgeScore(projectId, judgeName, scores, totalScore);
+      onSaved();
+    } catch (e) {
+      console.error(e);
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      {rubric.map(item => (
+        <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-2)' }}>{item.label} (/{item.maxScore})</label>
+          <input 
+            type="number" 
+            className="input" 
+            style={{ width: '80px', padding: '4px 8px', fontSize: 'var(--text-sm)' }}
+            min={0}
+            max={item.maxScore}
+            value={scores[item.label] !== undefined ? scores[item.label] : ''}
+            onChange={e => {
+              let val = parseInt(e.target.value);
+              if (isNaN(val)) val = 0;
+              if (val > item.maxScore) val = item.maxScore;
+              if (val < 0) val = 0;
+              setScores(prev => ({ ...prev, [item.label]: val }));
+            }}
+          />
+        </div>
+      ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-2)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--border)' }}>
+        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Total: {totalScore}/{maxPossible}</span>
+        <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving...' : existingMyScore ? 'Update Score' : 'Save Score'}
+        </button>
+      </div>
     </div>
   );
 }
