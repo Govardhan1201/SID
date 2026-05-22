@@ -156,7 +156,11 @@ export default function Navbar() {
                     </div>
                     
                     <div style={{ padding: '8px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-                      <Link href="/dashboard?tab=notifications" onClick={() => setNotifOpen(false)} style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none' }}>
+                      <Link
+                        href={role === 'admin' ? '/admin?tab=notifications' : '/dashboard?tab=notifications'}
+                        onClick={() => setNotifOpen(false)}
+                        style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none' }}
+                      >
                         View all
                       </Link>
                     </div>

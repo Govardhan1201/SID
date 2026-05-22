@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -20,11 +20,12 @@ import styles from './admin.module.css';
 
 type AdminTab = 'overview' | 'content' | 'archived' | 'users' | 'audit' | 'notifications';
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { userId, role, isLoading } = useAuth();
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
   const router = useRouter();
-  const [tab, setTab] = useState<AdminTab>('overview');
+  const params = useSearchParams();
+  const [tab, setTab] = useState<AdminTab>((params.get('tab') as AdminTab) ?? 'overview');
   const [projects, setProjects] = useState<Project[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [modFilterDomain, setModFilterDomain] = useState<string>('All');
@@ -437,5 +438,13 @@ export default function AdminPage() {
       </main>
       <Footer/>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminPageContent />
+    </Suspense>
   );
 }
