@@ -9,20 +9,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // You MUST provide an App Password in your .env.local file.
-    // E.g., EMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"
-    const user = 'govardhannagireddy1356@gmail.com';
-    const pass = process.env.EMAIL_APP_PASSWORD;
+    // Use environment variables for Mailrelay configuration
+    const host = process.env.SMTP_HOST || 'smtp.mailrelay.com';
+    const port = parseInt(process.env.SMTP_PORT || '587');
+    const user = process.env.SMTP_USER || process.env.EMAIL_APP_USER;
+    const pass = process.env.SMTP_PASS || process.env.EMAIL_APP_PASSWORD;
 
-    if (!pass) {
-      console.warn('EMAIL_APP_PASSWORD not set. Logging email instead of sending:', { to, subject });
+    if (!user || !pass) {
+      console.warn('SMTP_USER or SMTP_PASS not set. Logging email instead of sending:', { to, subject });
       return NextResponse.json({ success: true, messageId: 'simulated-id' });
     }
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // Use SSL
+      host,
+      port,
+      secure: port === 465, // Use SSL for 465, TLS for 587
       auth: { user, pass }
     });
 
