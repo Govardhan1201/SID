@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 import {
   Layers, Bell, ChevronDown, LogOut, MessageSquare,
-  User, LayoutDashboard, Settings, Menu, X, Plus, HelpCircle
+  User, LayoutDashboard, Settings, Menu, X, Plus, HelpCircle, FileText
 } from 'lucide-react';
 import styles from './Navbar.module.css';
 
@@ -82,9 +82,19 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               {role === 'student' && (
-                <Link href="/dashboard/projects/new" className={`btn btn-primary btn-sm ${styles.submitBtn}`}>
-                  <Plus size={13} /> Submit
-                </Link>
+                <>
+                  <a href="https://resumebuilder-v1.lovable.app/" target="_blank" rel="noopener noreferrer" className={`btn btn-secondary btn-sm ${styles.resumeBtn || ''}`} style={{ display: 'none', alignItems: 'center', gap: '6px' }} id="resume-builder-nav-btn">
+                    <FileText size={13} /> Resume Builder
+                  </a>
+                  <style>{`
+                    @media (min-width: 768px) {
+                      #resume-builder-nav-btn { display: flex !important; }
+                    }
+                  `}</style>
+                  <Link href="/dashboard/projects/new" className={`btn btn-primary btn-sm ${styles.submitBtn}`}>
+                    <Plus size={13} /> Submit
+                  </Link>
+                </>
               )}
 
               {/* Messages shortcut */}
@@ -197,6 +207,9 @@ export default function Navbar() {
                       <Link href={`/profile/${studentProfile?.userId}`} className={styles.dropdownItem}>
                         <User size={14} /> My Profile
                       </Link>
+                      <a href="https://resumebuilder-v1.lovable.app/" target="_blank" rel="noopener noreferrer" className={styles.dropdownItem}>
+                        <FileText size={14} /> Resume Builder
+                      </a>
                       <Link href="/dashboard/projects/new" className={styles.dropdownItem}>
                         <Plus size={14} /> New Project
                       </Link>
