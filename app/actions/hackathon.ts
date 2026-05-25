@@ -3,6 +3,16 @@
 import { prisma } from '@/lib/prisma';
 import type { Hackathon, HackathonTrack, HackathonAnnouncement, HackathonTeam, HackathonProject, ScoringRubric, JudgeScore } from '@/types';
 
+async function sendEmail(to: string, subject: string, html: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  try {
+    await fetch(`${baseUrl}/api/send-email`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to, subject, html, text: subject }),
+    });
+  } catch (e) { console.error('Email error:', e); }
+}
+
 // ── GET ACTIONS ─────────────────────────────────────────────────────────────
 
 export async function getAllHackathons() {
@@ -78,13 +88,26 @@ export async function updateHackathonStatus(id: string, status: string) {
 }
 
 export async function addHackathonAnnouncement(hackathonId: string, text: string, type: string) {
-  return await prisma.hackathonAnnouncement.create({
-    data: {
-      hackathonId,
-      text,
-      type
-    }
+  const announcement = await prisma.hackathonAnnouncement.create({
+    data: { hackathonId, text, type }
   });
+
+  // Notify all participants of this hackathon
+  const hackathon = await prisma.hackathon.findUnique({ where: { id: hackathonId }, select: { name: true } });
+  const participants = await prisma.hackathonParticipant.findMany({ where: { hackathonId }, select: { userId: true } });
+  if (participants.length > 0 && hackathon) {
+    await prisma.notification.createMany({
+      data: participants.map(p => ({
+        userId: p.userId,
+        title: `📢 New Announcement: ${hackathon.name}`,
+        message: text.length > 100 ? text.slice(0, 100) + '...' : text,
+        type: 'announcement',
+        link: `/hackathon/${hackathonId}`,
+      }))
+    });
+  }
+
+  return announcement;
 }
 
 export async function deleteHackathonAnnouncement(id: string) {
@@ -154,14 +177,28 @@ export async function createHackathonTeam(data: any) {
 }
 
 export async function addHackathonParticipant(data: any) {
-  return await prisma.hackathonParticipant.create({
-    data: {
-      hackathonId: data.hackathonId,
-      userId: data.userId,
-      teamId: data.teamId,
-      role: data.role
-    }
+  const participant = await prisma.hackathonParticipant.create({
+    data: { hackathonId: data.hackathonId, userId: data.userId, teamId: data.teamId, role: data.role }
   });
+
+  // Notify the user they've been added to a team
+  try {
+    const team = await prisma.hackathonTeam.findUnique({ where: { id: data.teamId }, select: { name: true, leaderId: true } });
+    const hackathon = await prisma.hackathon.findUnique({ where: { id: data.hackathonId }, select: { name: true } });
+    if (team && hackathon && data.userId !== team.leaderId) {
+      await prisma.notification.create({
+        data: {
+          userId: data.userId,
+          title: `🎉 You joined team "${team.name}"`,
+          message: `You've been added to team "${team.name}" for ${hackathon.name}.`,
+          type: 'team',
+          link: `/hackathon/${data.hackathonId}`,
+        }
+      });
+    }
+  } catch (e) { console.error('Team notification error:', e); }
+
+  return participant;
 }
 
 export async function importHackathonParticipants(

@@ -68,6 +68,7 @@ export async function signUpAction(email: string, password: string, role: 'stude
           email: cleanEmail,
           passwordHash,
           role,
+          isVerified: true,
         }
       });
 

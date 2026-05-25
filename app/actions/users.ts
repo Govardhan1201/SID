@@ -63,6 +63,21 @@ export async function createNotification(data: any) {
   });
 }
 
+export async function bulkMarkNotificationsRead(ids: string[]) {
+  return await prisma.notification.updateMany({
+    where: { id: { in: ids } },
+    data: { isRead: true }
+  });
+}
+
+export async function deleteNotification(id: string) {
+  return await prisma.notification.delete({ where: { id } });
+}
+
+export async function bulkDeleteNotifications(ids: string[]) {
+  return await prisma.notification.deleteMany({ where: { id: { in: ids } } });
+}
+
 /** Returns a plain object mapping userId → email for the given list of IDs */
 export async function getUserEmailsByIds(userIds: string[]): Promise<Record<string, string>> {
   const users = await prisma.user.findMany({
@@ -73,3 +88,4 @@ export async function getUserEmailsByIds(userIds: string[]): Promise<Record<stri
   for (const u of users) map[u.id] = u.email;
   return map;
 }
+

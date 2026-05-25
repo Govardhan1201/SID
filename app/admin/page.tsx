@@ -9,12 +9,12 @@ import { useNotifications } from '@/context/NotificationContext';
 import { getAllUsersAdmin, toggleUserBanStatus, getAllAuditLogs, createAuditLog } from '@/app/actions/admin';
 import { getAllProjects, updateProject } from '@/app/actions/projects';
 import { getAllIdeas, updateIdea } from '@/app/actions/ideas';
-import { getAllStudentProfiles } from '@/app/actions/users';
+import { getAllStudentProfiles, bulkMarkNotificationsRead, bulkDeleteNotifications, deleteNotification } from '@/app/actions/users';
 import type { Project, Idea } from '@/types';
 import {
   LayoutDashboard, Users, Layers, Lightbulb, Shield, Settings,
   CheckCircle, XCircle, Star, Archive, Flag, ChevronRight, Trophy,
-  ExternalLink, Code, Bell, RotateCcw, ArrowLeft
+  ExternalLink, Code, Bell, RotateCcw, ArrowLeft, Trash2, Filter
 } from 'lucide-react';
 import styles from './admin.module.css';
 
@@ -32,6 +32,10 @@ function AdminPageContent() {
   const [users, setUsers] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [studentProfiles, setStudentProfiles] = useState<any[]>([]);
+  // Notification UI state
+  const [notifFilter, setNotifFilter] = useState<string>('all');
+  const [selectedNotifs, setSelectedNotifs] = useState<Set<string>>(new Set());
+  const [notifBusy, setNotifBusy] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!userId || role !== 'admin')) router.replace('/login');
@@ -409,29 +413,143 @@ function AdminPageContent() {
               )}
 
               {/* ── Notifications ── */}
-              {tab === 'notifications' && (
-                <>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'var(--space-4)'}}>
-                    <h1 className={styles.pageTitle}>Notifications</h1>
-                    {unreadCount > 0 && (
-                      <button className="btn btn-secondary btn-sm" onClick={markAllRead}>Mark all read</button>
-                    )}
-                  </div>
-                  {notifications.length === 0
-                    ? <div className="empty-state"><Bell size={32}/><p className="empty-state__title">No notifications</p></div>
-                    : notifications.map((n: any) => (
-                      <div key={n.id} className={styles.auditRow} style={{cursor:'pointer', opacity: n.isRead ? 0.6 : 1}} onClick={()=>markRead(n.id)}>
-                        <div className={styles.auditDot} style={{background: n.isRead ? 'var(--text-4)' : 'var(--primary)'}}/>
-                        <div>
-                          <p className={styles.auditMsg}>{n.message}</p>
-                          <p className={styles.auditTime}>{new Date(n.createdAt).toLocaleString('en-IN')}</p>
-                        </div>
-                        {!n.isRead && <span className="badge badge-primary" style={{marginLeft:'auto'}}>New</span>}
+              {tab === 'notifications' && (() => {
+                const FILTER_TYPES: {label: string; value: string}[] = [
+                  { label: 'All', value: 'all' },
+                  { label: 'Submissions', value: 'project_submission' },
+                  { label: 'Moderation', value: 'moderation' },
+                  { label: 'Messages', value: 'message' },
+                  { label: 'Announcements', value: 'announcement' },
+                  { label: 'Teams', value: 'team' },
+                  { label: 'System', value: 'system' },
+                ];
+                const filtered = notifications.filter((n: any) => notifFilter === 'all' || n.type === notifFilter);
+                const allSelected = filtered.length > 0 && filtered.every((n: any) => selectedNotifs.has(n.id));
+
+                async function handleBulkRead() {
+                  setNotifBusy(true);
+                  await bulkMarkNotificationsRead(Array.from(selectedNotifs));
+                  setSelectedNotifs(new Set());
+                  window.location.reload();
+                }
+                async function handleBulkDelete() {
+                  setNotifBusy(true);
+                  await bulkDeleteNotifications(Array.from(selectedNotifs));
+                  setSelectedNotifs(new Set());
+                  window.location.reload();
+                }
+                async function handleDeleteOne(id: string) {
+                  await deleteNotification(id);
+                  window.location.reload();
+                }
+                async function handleApprove(projectId: string, notifId: string) {
+                  await updateProject(projectId, { moderationStatus: 'approved' });
+                  await markRead(notifId);
+                  await loadData();
+                }
+                async function handleReject(projectId: string, notifId: string) {
+                  await updateProject(projectId, { moderationStatus: 'rejected' });
+                  await markRead(notifId);
+                  await loadData();
+                }
+
+                return (
+                  <>
+                    {/* Header */}
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'var(--space-4)',flexWrap:'wrap',gap:'var(--space-3)'}}>
+                      <h1 className={styles.pageTitle}>Notifications</h1>
+                      <div style={{display:'flex',gap:'var(--space-2)'}}>
+                        {selectedNotifs.size > 0 && (
+                          <>
+                            <button className="btn btn-secondary btn-sm" onClick={handleBulkRead} disabled={notifBusy}>
+                              <CheckCircle size={13}/> Mark {selectedNotifs.size} read
+                            </button>
+                            <button className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={notifBusy} style={{background:'var(--danger)',color:'#fff',border:'none'}}>
+                              <Trash2 size={13}/> Delete {selectedNotifs.size}
+                            </button>
+                          </>
+                        )}
+                        {unreadCount > 0 && <button className="btn btn-secondary btn-sm" onClick={markAllRead}>Mark all read</button>}
                       </div>
-                    ))
-                  }
-                </>
-              )}
+                    </div>
+
+                    {/* Filter chips */}
+                    <div style={{display:'flex',gap:'var(--space-2)',flexWrap:'wrap',marginBottom:'var(--space-4)'}}>
+                      {FILTER_TYPES.map(f => (
+                        <button key={f.value} onClick={() => setNotifFilter(f.value)}
+                          className={`btn btn-sm ${notifFilter === f.value ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{fontSize:'var(--text-xs)'}}>
+                          <Filter size={11}/> {f.label}
+                          {f.value !== 'all' && <span style={{marginLeft:4,opacity:0.7}}>({notifications.filter((n:any)=>n.type===f.value).length})</span>}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Select all */}
+                    {filtered.length > 0 && (
+                      <div style={{display:'flex',alignItems:'center',gap:'var(--space-2)',marginBottom:'var(--space-3)',fontSize:'var(--text-xs)',color:'var(--text-3)'}}>
+                        <input type="checkbox" checked={allSelected} onChange={e => {
+                          if (e.target.checked) setSelectedNotifs(new Set(filtered.map((n:any)=>n.id)));
+                          else setSelectedNotifs(new Set());
+                        }}/>
+                        <span>Select all ({filtered.length})</span>
+                      </div>
+                    )}
+
+                    {/* List */}
+                    {filtered.length === 0
+                      ? <div className="empty-state"><Bell size={32}/><p className="empty-state__title">No notifications in this category</p></div>
+                      : filtered.map((n: any) => (
+                        <div key={n.id} className={styles.auditRow} style={{opacity: n.isRead ? 0.65 : 1, alignItems:'flex-start', gap:'var(--space-3)'}}>
+                          {/* Checkbox */}
+                          <input type="checkbox" style={{marginTop:4,flexShrink:0}} checked={selectedNotifs.has(n.id)}
+                            onChange={e => {
+                              const s = new Set(selectedNotifs);
+                              e.target.checked ? s.add(n.id) : s.delete(n.id);
+                              setSelectedNotifs(s);
+                            }}
+                          />
+                          <div className={styles.auditDot} style={{background: n.isRead ? 'var(--text-4)' : 'var(--primary)', marginTop:6, flexShrink:0}}/>
+                          <div style={{flex:1}}>
+                            <p className={styles.auditMsg} style={{fontWeight: n.isRead ? 400 : 600}}>{n.title}</p>
+                            <p style={{fontSize:'var(--text-xs)',color:'var(--text-3)',margin:'2px 0'}}>{n.message}</p>
+                            <p className={styles.auditTime}>{new Date(n.createdAt).toLocaleString('en-IN')}</p>
+                            {/* Actionable buttons for project submissions */}
+                            {n.actionable && n.type === 'project_submission' && n.actionData?.projectId && !n.isRead && (
+                              <div style={{display:'flex',gap:'var(--space-2)',marginTop:'var(--space-2)'}}>
+                                <button className="btn btn-sm" style={{background:'var(--success,#22c55e)',color:'#fff',border:'none',fontSize:'var(--text-xs)'}}
+                                  onClick={() => handleApprove(n.actionData.projectId, n.id)}>
+                                  <CheckCircle size={12}/> Approve
+                                </button>
+                                <button className="btn btn-sm" style={{background:'var(--danger)',color:'#fff',border:'none',fontSize:'var(--text-xs)'}}
+                                  onClick={() => handleReject(n.actionData.projectId, n.id)}>
+                                  <XCircle size={12}/> Reject
+                                </button>
+                                <Link href={n.link || '#'} target="_blank" className="btn btn-secondary btn-sm" style={{fontSize:'var(--text-xs)'}}>
+                                  <ExternalLink size={12}/> View
+                                </Link>
+                              </div>
+                            )}
+                            {/* Normal link for read notifications */}
+                            {n.link && (n.isRead || !n.actionable) && (
+                              <Link href={n.link} className={styles.auditTime} style={{color:'var(--primary)',marginTop:4,display:'inline-block'}} onClick={()=>markRead(n.id)}>
+                                View →
+                              </Link>
+                            )}
+                          </div>
+                          <div style={{display:'flex',gap:'var(--space-1)',flexShrink:0}}>
+                            {!n.isRead && <button className="btn btn-ghost btn-sm" style={{fontSize:'var(--text-xs)'}} onClick={()=>markRead(n.id)}>Mark read</button>}
+                            <button className="btn btn-ghost btn-sm" style={{fontSize:'var(--text-xs)',color:'var(--danger)'}} onClick={()=>handleDeleteOne(n.id)}>
+                              <Trash2 size={12}/>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </>
+                );
+              })()}
+
             </div>
           </div>
         </div>

@@ -259,13 +259,23 @@ model Team {
 }
 
 model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  title      String
+  message    String
+  type       String
+  link       String?
+  isRead     Boolean  @default(false)
+  actionable Boolean  @default(false)
+  actionData Json     @default("{}")
+  createdAt  DateTime @default(now())
+}
+
+model Otp {
   id        String   @id @default(uuid())
-  userId    String
-  title     String
-  message   String
-  type      String
-  link      String?
-  isRead    Boolean  @default(false)
+  email     String   @unique
+  code      String
+  expiresAt DateTime
   createdAt DateTime @default(now())
 }
 
